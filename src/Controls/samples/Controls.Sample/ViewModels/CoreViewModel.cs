@@ -26,6 +26,9 @@ namespace Maui.Controls.Sample.ViewModels
 
 			new SectionModel(typeof(TransformationsPage), "Transformations",
 				"Apply scale transformations, rotation, etc. to a View."),
+
+			new SectionModel(typeof(Effects), "Effects",
+				"Apply Effects to a View."),
 		};
 	}
 }
