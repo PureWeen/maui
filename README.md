@@ -27,7 +27,7 @@
 
 [April 21, 2021 - InfoQ Interview with David Ortinau](https://www.infoq.com/articles/net-maui/)
 
-[April 9, 2021 - Announcing .NET Multi-platform App UI Preview 3](https://devblogs.microsoft.com/dotnet/announcing-net-multi-platform-app-ui-preview-3/)
+[April 9, 2021 - Announcing .NET Multi-platform App UI Preview 3](https://devblogs.microsoft.com/dotnet/announcing-net-multi-platform-app-ui-preview-3)
 
 [April 9, 2021 - Xamarin Podcast - .NET MAUI Q&A](https://www.xamarinpodcast.com/90)
 
