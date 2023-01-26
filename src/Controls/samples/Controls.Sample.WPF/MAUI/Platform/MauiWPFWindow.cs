@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Microsoft.Maui.LifecycleEvents.WPF;
+using Microsoft.Maui.Platform.WPF;
 
 namespace Maui.Controls.Sample.WPF
 {
@@ -22,6 +24,17 @@ namespace Maui.Controls.Sample.WPF
 	{
 		public MauiWPFWindow()
 		{
+		}
+
+		protected override void OnActivated(EventArgs args)
+		{
+			base.OnActivated(args);
+			MauiWPFApplication.Current.Services?.InvokeLifecycleEvents<WPFLifecycle.OnActivated>(del => del(this, args));
+		}
+
+		protected override void OnDeactivated(EventArgs e)
+		{
+			base.OnDeactivated(e);
 		}
 	}
 }
