@@ -4,4 +4,32 @@
     x:Class="Maui.Controls.Sample.MainPage"
     xmlns:local="clr-namespace:Maui.Controls.Sample">
 
+
+    <VerticalStackLayout>
+        <VerticalStackLayout>
+            <Entry PlaceHolder="Starting point"></Entry>
+        </VerticalStackLayout>
+        
+        <VerticalStackLayout ZIndex="1">
+            <Entry PlaceHolder="1"></Entry>
+            <Entry></Entry>
+            <Entry ></Entry>
+            <Entry ></Entry>
+            <Entry ></Entry>
+            <Entry ></Entry>
+            <Entry ></Entry>
+            <Entry  PlaceHolder="Last"></Entry>
+        </VerticalStackLayout>
+        
+        <VerticalStackLayout ZIndex="0">
+            <Entry Zindex="7" PlaceHolder="1"></Entry>
+            <Entry Zindex="6"></Entry>
+            <Entry Zindex="5"></Entry>
+            <Entry Zindex="4"></Entry>
+            <Entry Zindex="3"></Entry>
+            <Entry Zindex="2"></Entry>
+            <Entry Zindex="1"></Entry>
+            <Entry Zindex="0"  PlaceHolder="Last"></Entry>
+        </VerticalStackLayout>
+    </VerticalStackLayout>
 </ContentPage>

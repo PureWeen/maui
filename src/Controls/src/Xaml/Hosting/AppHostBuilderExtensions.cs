@@ -150,11 +150,11 @@ namespace Microsoft.Maui.Controls.Hosting
 
 		static MauiAppBuilder SetupDefaults(this MauiAppBuilder builder)
 		{
-#if WINDOWS || ANDROID || IOS || MACCATALYST || TIZEN
 			// initialize compatibility DependencyService
 			DependencyService.SetToInitialized();
 			DependencyService.Register<Xaml.ResourcesLoader>();
 			DependencyService.Register<Xaml.ValueConverterProvider>();
+#if WINDOWS || ANDROID || IOS || MACCATALYST || TIZEN
 			DependencyService.Register<PlatformSizeService>();
 
 #pragma warning disable CS0612, CA1416 // Type or member is obsolete, 'ResourcesProvider' is unsupported on: 'iOS' 14.0 and later
