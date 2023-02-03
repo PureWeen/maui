@@ -28,17 +28,27 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui.WPF
 
 		public override Size GetDesiredSize(double widthConstraint, double heightConstraint)
 		{
-			var size = base.GetDesiredSize(500, 500);
-			PlatformView.WebView.Measure(new System.Windows.Size(500, 500));
-			var desiredSize = PlatformView.WebView.DesiredSize;
+			// TODO I don't know why I need these explicit sizes.. I just forced it to 500 for now
 
-			return new Size(500,500);
+			if (!double.IsInfinity(VirtualView.WidthRequest) && !double.IsInfinity(VirtualView.HeightRequest) &&
+				VirtualView.WidthRequest > 0 && VirtualView.HeightRequest > 0)
+			{
+				var size = base.GetDesiredSize(VirtualView.WidthRequest, VirtualView.HeightRequest);
+				PlatformView.WebView.Measure(new System.Windows.Size(VirtualView.WidthRequest, VirtualView.HeightRequest));
+				return new Size(VirtualView.WidthRequest, VirtualView.HeightRequest);
+			}
+			else
+			{
+				var size = base.GetDesiredSize(widthConstraint, heightConstraint);
+				PlatformView.WebView.Measure(new System.Windows.Size(widthConstraint, heightConstraint));
+				return size;
+			}
 		}
 
 		public override void PlatformArrange(Rect rect)
 		{
 			base.PlatformArrange(rect);
-			PlatformView.WebView.Arrange(new global::System.Windows.Rect(rect.X, rect.Y, 500, 500));
+			PlatformView.WebView.Arrange(new global::System.Windows.Rect(rect.X, rect.Y, rect.Width, rect.Height));
 		}
 
 		protected override void ConnectHandler(Wpf.BlazorWebView platformView)
