@@ -30,11 +30,20 @@ namespace Microsoft.Maui.Platform.WPF
 
 			var window = application.CreateWindow(activationState);
 
+
+			//winuiWndow.Activated += WinuiWndow_Activated;
 			winuiWndow.SetWindowHandler(window, mauiContext);
 
 			//applicationContext.Services.InvokeLifecycleEvents<WindowsLifecycle.OnWindowCreated>(del => del(winuiWndow));
 
 			winuiWndow.Show();
+
+			//void WinuiWndow_Activated(object? sender, System.EventArgs e)
+			//{
+			//	WPFDispatcher.ReplacHack = winuiWndow.Dispatcher;
+			//	winuiWndow.SetWindowHandler(window, mauiContext);
+			//	winuiWndow.Activated -= WinuiWndow_Activated;
+			//}
 		}
 	}
 
