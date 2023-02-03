@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui.WPF
 			var contentRootDir = Path.GetDirectoryName(HostPage!) ?? string.Empty;
 			var hostPageRelativePath = Path.GetRelativePath(contentRootDir, HostPage!);
 
-			//logger.CreatingFileProvider(contentRootDir, hostPageRelativePath);
+			WebView.WPF.Log.CreatingFileProvider(logger, contentRootDir, hostPageRelativePath);
 			var fileProvider = VirtualView.CreateFileProvider(contentRootDir);
 
 			_webviewManager = new WebView2WebViewManager(
@@ -88,9 +88,15 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui.WPF
 				VirtualView.JSComponents,
 				contentRootDir,
 				hostPageRelativePath,
-				(loading) => { },
-				(initializing) => { },
-				(initialized) => { },
+				(loading) => 
+				{ 
+				},
+				(initializing) => 
+				{ 
+				},
+				(initialized) => 
+				{ 
+				},
 				logger);
 
 			//	StaticContentHotReloadManager.AttachToWebViewManagerIfEnabled(_webviewManager);
@@ -104,14 +110,14 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui.WPF
 						continue;
 					}
 
-					//logger.AddingRootComponent(rootComponent.ComponentType?.FullName ?? string.Empty, rootComponent.Selector ?? string.Empty, rootComponent.Parameters?.Count ?? 0);
+					WebView.WPF.Log.AddingRootComponent(logger, rootComponent.ComponentType?.FullName ?? string.Empty, rootComponent.Selector ?? string.Empty, rootComponent.Parameters?.Count ?? 0);
 
 					// Since the page isn't loaded yet, this will always complete synchronously
 					_ = rootComponent.AddToWebViewManagerAsync(_webviewManager);
 				}
 			}
 
-			//	logger.StartingInitialNavigation(VirtualView.StartPath);
+			WebView.WPF.Log.StartingInitialNavigation(logger, VirtualView.StartPath);
 			_webviewManager.Navigate(VirtualView.StartPath);
 		}
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MauiApp7;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Hosting;
@@ -24,10 +25,10 @@ namespace Maui.Controls.Sample.WPF
 			builder.Services.AddMauiBlazorWebView();
 			builder.Services.AddWpfBlazorWebView();
 
-//#if DEBUG
-//			builder.Services.AddBlazorWebViewDeveloperTools();
-//			builder.Logging.AddDebug();
-//#endif
+#if DEBUG
+			builder.Services.AddSingleton<Microsoft.AspNetCore.Components.WebView.Wpf.BlazorWebViewDeveloperTools>(new Microsoft.AspNetCore.Components.WebView.Wpf.BlazorWebViewDeveloperTools { Enabled = true });
+			builder.Logging.AddDebug();
+#endif
 
 			return builder.Build();
 		}
