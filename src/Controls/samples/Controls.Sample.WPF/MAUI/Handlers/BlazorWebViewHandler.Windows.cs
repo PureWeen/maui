@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Maui.Dispatching;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
+using Microsoft.Maui.Platform;
 using WebView2Control = Microsoft.Web.WebView2.Wpf.WebView2;
 
 namespace Microsoft.AspNetCore.Components.WebView.Maui.WPF
@@ -15,29 +16,60 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui.WPF
 	/// <summary>
 	/// A <see cref="ViewHandler"/> for <see cref="BlazorWebView"/>.
 	/// </summary>
-	public partial class BlazorWebViewHandler : WPFViewHandler<IBlazorWebView, WebView2Control>
+	public partial class BlazorWebViewHandler : WPFViewHandler<BlazorWebView, Wpf.BlazorWebView>
 	{
 		private WebView2WebViewManager? _webviewManager;
 
 		/// <inheritdoc />
-		protected override WebView2Control CreatePlatformView()
+		protected override Wpf.BlazorWebView CreatePlatformView()
 		{
-			return new WebView2Control();
+			return new Wpf.BlazorWebView();
 		}
 
 		public override Size GetDesiredSize(double widthConstraint, double heightConstraint)
 		{
-			var size = base.GetDesiredSize(widthConstraint, heightConstraint);
-			return size;
+			var size = base.GetDesiredSize(500, 500);
+			PlatformView.WebView.Measure(new System.Windows.Size(500, 500));
+			var desiredSize = PlatformView.WebView.DesiredSize;
+
+			return new Size(500,500);
 		}
 
 		public override void PlatformArrange(Rect rect)
 		{
 			base.PlatformArrange(rect);
+			PlatformView.WebView.Arrange(new global::System.Windows.Rect(rect.X, rect.Y, 500, 500));
+		}
+
+		protected override void ConnectHandler(Wpf.BlazorWebView platformView)
+		{
+			PlatformView.Loaded += PlatformView_Loaded;
+			PlatformView.Services = MauiContext!.Services!;
+			base.ConnectHandler(platformView);
+		}
+
+		private void WebView_NavigationCompleted(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs e)
+		{
+			PlatformView.Dispatcher.Invoke(() =>
+			{
+				PlatformView.InvalidateMeasure();
+				PlatformView.InvalidateArrange();
+
+				((System.Windows.UIElement)PlatformView.Parent).InvalidateMeasure();
+				((System.Windows.UIElement)PlatformView.Parent).InvalidateArrange();
+			});
+		}
+
+		void PlatformView_Loaded(object sender, System.Windows.RoutedEventArgs e)
+		{
+			PlatformView.WebView.NavigationCompleted += WebView_NavigationCompleted;
+			//this.InvalidateMeasure(VirtualView);
+			//PlatformView.Parent.InvalidateMeasure(VirtualView);
+			StartWebViewCoreIfPossible();
 		}
 
 		/// <inheritdoc />
-		protected override void DisconnectHandler(WebView2Control platformView)
+		protected override void DisconnectHandler(Wpf.BlazorWebView platformView)
 		{
 			if (_webviewManager != null)
 			{
@@ -60,65 +92,68 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui.WPF
 
 		private void StartWebViewCoreIfPossible()
 		{
-			if (!RequiredStartupPropertiesSet ||
-				_webviewManager != null)
-			{
-				return;
-			}
-			if (PlatformView == null)
-			{
-				throw new InvalidOperationException($"Can't start {nameof(BlazorWebView)} without native web view instance.");
-			}
+			//if (PlatformView.WebView == null)
+			//	return;
 
-			var logger = Services!.GetService<ILogger<BlazorWebViewHandler>>() ?? NullLogger<BlazorWebViewHandler>.Instance;
+			//if (!RequiredStartupPropertiesSet ||
+			//	_webviewManager != null)
+			//{
+			//	return;
+			//}
+			//if (PlatformView == null)
+			//{
+			//	throw new InvalidOperationException($"Can't start {nameof(BlazorWebView)} without native web view instance.");
+			//}
 
-			// We assume the host page is always in the root of the content directory, because it's
-			// unclear there's any other use case. We can add more options later if so.
-			var contentRootDir = Path.GetDirectoryName(HostPage!) ?? string.Empty;
-			var hostPageRelativePath = Path.GetRelativePath(contentRootDir, HostPage!);
+			//var logger = Services!.GetService<ILogger<BlazorWebViewHandler>>() ?? NullLogger<BlazorWebViewHandler>.Instance;
 
-			WebView.WPF.Log.CreatingFileProvider(logger, contentRootDir, hostPageRelativePath);
-			var fileProvider = VirtualView.CreateFileProvider(contentRootDir);
+			//// We assume the host page is always in the root of the content directory, because it's
+			//// unclear there's any other use case. We can add more options later if so.
+			//var contentRootDir = Path.GetDirectoryName(HostPage!) ?? string.Empty;
+			//var hostPageRelativePath = Path.GetRelativePath(contentRootDir, HostPage!);
 
-			_webviewManager = new WebView2WebViewManager(
-				PlatformView,
-				Services!,
-				new MauiDispatcher(Services!.GetRequiredService<IDispatcher>()),
-				fileProvider,
-				VirtualView.JSComponents,
-				contentRootDir,
-				hostPageRelativePath,
-				(loading) => 
-				{ 
-				},
-				(initializing) => 
-				{ 
-				},
-				(initialized) => 
-				{ 
-				},
-				logger);
+			//WebView.WPF.Log.CreatingFileProvider(logger, contentRootDir, hostPageRelativePath);
+			//var fileProvider = VirtualView.CreateFileProvider(contentRootDir);
 
-			//	StaticContentHotReloadManager.AttachToWebViewManagerIfEnabled(_webviewManager);
+			//_webviewManager = new WebView2WebViewManager(
+			//	PlatformView.WebView,
+			//	Services!,
+			//	new MauiDispatcher(Services!.GetRequiredService<IDispatcher>()),
+			//	fileProvider,
+			//	(VirtualView as IBlazorWebView).JSComponents,
+			//	contentRootDir,
+			//	hostPageRelativePath,
+			//	(loading) =>
+			//	{
+			//	},
+			//	(initializing) =>
+			//	{
+			//	},
+			//	(initialized) =>
+			//	{
+			//	},
+			//	logger);
 
-			if (RootComponents != null)
-			{
-				foreach (var rootComponent in RootComponents)
-				{
-					if (rootComponent is null)
-					{
-						continue;
-					}
+			////	StaticContentHotReloadManager.AttachToWebViewManagerIfEnabled(_webviewManager);
 
-					WebView.WPF.Log.AddingRootComponent(logger, rootComponent.ComponentType?.FullName ?? string.Empty, rootComponent.Selector ?? string.Empty, rootComponent.Parameters?.Count ?? 0);
+			//if (RootComponents != null)
+			//{
+			//	foreach (var rootComponent in RootComponents)
+			//	{
+			//		if (rootComponent is null)
+			//		{
+			//			continue;
+			//		}
 
-					// Since the page isn't loaded yet, this will always complete synchronously
-					_ = rootComponent.AddToWebViewManagerAsync(_webviewManager);
-				}
-			}
+			//		WebView.WPF.Log.AddingRootComponent(logger, rootComponent.ComponentType?.FullName ?? string.Empty, rootComponent.Selector ?? string.Empty, rootComponent.Parameters?.Count ?? 0);
 
-			WebView.WPF.Log.StartingInitialNavigation(logger, VirtualView.StartPath);
-			_webviewManager.Navigate(VirtualView.StartPath);
+			//		// Since the page isn't loaded yet, this will always complete synchronously
+			//		_ = rootComponent.AddToWebViewManagerAsync(_webviewManager);
+			//	}
+			//}
+
+			//WebView.WPF.Log.StartingInitialNavigation(logger, VirtualView.StartPath);
+			//_webviewManager.Navigate(VirtualView.StartPath);
 		}
 
 		internal IFileProvider CreateFileProvider(string contentRootDir)
