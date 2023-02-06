@@ -58,37 +58,98 @@ namespace Microsoft.Maui.DeviceTests
 		}
 
 		[Fact]
-		public async Task SwapWindowPageDuringModalAppearing()
+		public async Task AppearingAndDisappearingFireOnWindowAndModal()
 		{
 			SetupBuilder();
-			var page = new ContentPage();
-			var newRootPage = new ContentPage()
+			var windowPage = new ContentPage()
 			{
-				Content = new Label() { Text = "New Root Page" }
+				Content = new Label() { Text = "AppearingAndDisappearingFireOnWindowAndModal.Window" }
 			};
 
 			var modalPage = new ContentPage()
 			{
-				Content = new Label() { Text = "SwapWindowPageDuringModalAppearing" }
+				Content = new Label() { Text = "AppearingAndDisappearingFireOnWindowAndModal.Modal" }
 			};
 
-			var window = new Window(page);
-			bool appearing = false;
-			bool disappearing = false;
+			var window = new Window(windowPage);
+			int modalAppearing = 0;
+			int modalDisappearing = 0;
+			int windowAppearing = 0;
+			int windowDisappearing = 0;
 
-			modalPage.Appearing += (_, _) => appearing = true;
-			modalPage.Appearing += (_, _) => disappearing = true;
+			modalPage.Appearing += (_, _) => modalAppearing++;
+			modalPage.Disappearing += (_, _) => modalDisappearing++;
+
+			windowPage.Appearing += (_, _) => windowAppearing++;
+			windowPage.Disappearing += (_, _) => windowDisappearing++;
 
 			await CreateHandlerAndAddToWindow<IWindowHandler>(window,
 				async (_) =>
 				{
-					await page.Navigation.PushModalAsync(modalPage);
-					await OnLoadedAsync(newRootPage.Content);
-					await page.Navigation.PopModalAsync();
+					await windowPage.Navigation.PushModalAsync(modalPage);
+					await OnLoadedAsync(modalPage.Content);
+					await windowPage.Navigation.PopModalAsync();
 				});
 
-			Assert.True(appearing);
-			Assert.True(disappearing);
+			Assert.Equal(1, modalAppearing);
+			Assert.Equal(1, modalDisappearing);
+			Assert.Equal(2, windowAppearing);
+			Assert.Equal(1, windowDisappearing);
+		}
+
+		[Fact]
+		public async Task AppearingAndDisappearingFireOnMultipleModals()
+		{
+			SetupBuilder();
+			var windowPage = new ContentPage()
+			{
+				Content = new Label() { Text = "AppearingAndDisappearingFireOnWindowAndModal.Window" }
+			};
+
+			var modalPage1 = new ContentPage()
+			{
+				Content = new Label() { Text = "AppearingAndDisappearingFireOnWindowAndModal.Modal1" }
+			};
+
+			var modalPage2 = new ContentPage()
+			{
+				Content = new Label() { Text = "AppearingAndDisappearingFireOnWindowAndModal.Modal2" }
+			};
+
+			var window = new Window(windowPage);
+			int modal1Appearing = 0;
+			int modal1Disappearing = 0;
+			int modal2Appearing = 0;
+			int modal2Disappearing = 0;
+			int windowAppearing = 0;
+			int windowDisappearing = 0;
+
+			modalPage1.Appearing += (_, _) => modal1Appearing++;
+			modalPage1.Disappearing += (_, _) => modal1Disappearing++;
+
+			modalPage2.Appearing += (_, _) => modal2Appearing++;
+			modalPage2.Disappearing += (_, _) => modal2Disappearing++;
+
+			windowPage.Appearing += (_, _) => windowAppearing++;
+			windowPage.Disappearing += (_, _) => windowDisappearing++;
+
+			await CreateHandlerAndAddToWindow<IWindowHandler>(window,
+				async (_) =>
+				{
+					await windowPage.Navigation.PushModalAsync(modalPage1);
+					await windowPage.Navigation.PushModalAsync(modalPage2);
+					await windowPage.Navigation.PopModalAsync();
+					await windowPage.Navigation.PopModalAsync();
+				});
+
+			Assert.Equal(2, modal1Appearing);
+			Assert.Equal(2, modal1Disappearing);
+
+			Assert.Equal(1, modal2Appearing);
+			Assert.Equal(1, modal2Disappearing);
+
+			Assert.Equal(2, windowAppearing);
+			Assert.Equal(2, windowDisappearing);
 		}
 
 		[Theory]
