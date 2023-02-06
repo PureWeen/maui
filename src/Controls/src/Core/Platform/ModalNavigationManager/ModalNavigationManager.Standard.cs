@@ -8,7 +8,7 @@ namespace Microsoft.Maui.Controls.Platform
 {
 	internal partial class ModalNavigationManager
 	{
-		public Task<Page> PopModalAsync(bool animated)
+		Task<Page> PopModalPlatformAsync(bool animated)
 		{
 			if (ModalStack.Count == 0)
 				throw new InvalidOperationException();
@@ -16,7 +16,7 @@ namespace Microsoft.Maui.Controls.Platform
 			return Task.FromResult(_navModel.PopModal());
 		}
 
-		public Task PushModalAsync(Page modal, bool animated)
+		Task PushModalPlatformAsync(Page modal, bool animated)
 		{
 			_navModel.PushModal(modal);
 			return Task.CompletedTask;

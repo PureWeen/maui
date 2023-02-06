@@ -8,6 +8,7 @@ using Microsoft.Maui.Controls.Handlers;
 using Microsoft.Maui.DeviceTests.Stubs;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Hosting;
+using Microsoft.Maui.Platform;
 using Xunit;
 
 #if ANDROID || IOS || MACCATALYST
@@ -43,6 +44,7 @@ namespace Microsoft.Maui.DeviceTests
 
 					handlers.AddHandler(typeof(Controls.Shell), typeof(ShellHandler));
 					handlers.AddHandler<Layout, LayoutHandler>();
+					handlers.AddHandler<Entry, EntryHandler>();
 					handlers.AddHandler<Image, ImageHandler>();
 					handlers.AddHandler<Label, LabelHandler>();
 					handlers.AddHandler<Toolbar, ToolbarHandler>();
@@ -53,6 +55,40 @@ namespace Microsoft.Maui.DeviceTests
 #endif
 				});
 			});
+		}
+
+		[Fact]
+		public async Task SwapWindowPageDuringModalAppearing()
+		{
+			SetupBuilder();
+			var page = new ContentPage();
+			var newRootPage = new ContentPage()
+			{
+				Content = new Label() { Text = "New Root Page" }
+			};
+
+			var modalPage = new ContentPage()
+			{
+				Content = new Label() { Text = "SwapWindowPageDuringModalAppearing" }
+			};
+
+			var window = new Window(page);
+			bool appearing = false;
+			bool disappearing = false;
+
+			modalPage.Appearing += (_, _) => appearing = true;
+			modalPage.Appearing += (_, _) => disappearing = true;
+
+			await CreateHandlerAndAddToWindow<IWindowHandler>(window,
+				async (_) =>
+				{
+					await page.Navigation.PushModalAsync(modalPage);
+					await OnLoadedAsync(newRootPage.Content);
+					await page.Navigation.PopModalAsync();
+				});
+
+			Assert.True(appearing);
+			Assert.True(disappearing);
 		}
 
 		[Theory]

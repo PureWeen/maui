@@ -1,12 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using Android.Content;
 using Android.OS;
 using Android.Views;
 using Android.Views.Animations;
-using AndroidX.Activity;
-using AndroidX.AppCompat.App;
 using AndroidX.Fragment.App;
 using Microsoft.Maui.Graphics;
 using AView = Android.Views.View;
@@ -30,7 +27,6 @@ namespace Microsoft.Maui.Controls.Platform
 
 		bool _navAnimationInProgress;
 		internal const string CloseContextActionsSignalName = "Xamarin.CloseContextActions";
-		Page CurrentPage => _navModel.CurrentPage;
 
 		// AFAICT this is specific to ListView and Context Items
 		internal bool NavAnimationInProgress
@@ -49,7 +45,7 @@ namespace Microsoft.Maui.Controls.Platform
 			}
 		}
 
-		public Task<Page> PopModalAsync(bool animated)
+		Task<Page> PopModalPlatformAsync(bool animated)
 		{
 			Page modal = _navModel.PopModal();
 			var source = new TaskCompletionSource<Page>();
@@ -107,7 +103,7 @@ namespace Microsoft.Maui.Controls.Platform
 					throw new InvalidOperationException("Current Root View cannot be null");
 		}
 
-		public async Task PushModalAsync(Page modal, bool animated)
+		async Task PushModalPlatformAsync(Page modal, bool animated)
 		{
 			var viewToHide = GetCurrentRootView();
 

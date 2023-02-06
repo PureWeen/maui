@@ -21,29 +21,51 @@ namespace Microsoft.Maui.DeviceTests.Stubs
 
 		void UpdateContent(UIWindow platformView)
 		{
-			CloseView(_currentView, platformView, () =>
+			ReplaceCurrentView(_currentView, platformView, () =>
 			{
 				var view = VirtualView.Content.ToPlatform(MauiContext);
 				_currentView = VirtualView.Content;
 
+				var vc =
+					(_currentView.Handler as IPlatformViewHandler)
+						.ViewController;
+
+
+				bool fireEvents = !(VirtualView as Window).IsActivated;
 				if (VirtualView.Content is IFlyoutView)
 				{
-					var vc =
-						(_currentView.Handler as IPlatformViewHandler)
-							.ViewController;
-
 					vc.ModalPresentationStyle = UIModalPresentationStyle.FullScreen;
 
-					PlatformView.RootViewController.PresentViewController(vc, false, null);
+					if (fireEvents)
+						VirtualView.Created();
+
+					PlatformView.RootViewController.PresentViewController(vc, false,
+						() =>
+						{
+							if (fireEvents)
+								VirtualView.Activated();
+						});
 				}
 				else
 				{
-					AssertionExtensions.FindContentView().AddSubview(view);
+					if (fireEvents)
+						VirtualView.Created();
+
+					//AssertionExtensions.FindContentViewController().AddChildViewController(vc);
+
+					var contentView = AssertionExtensions.FindContentView();
+					contentView.AddSubview(view);
+
+					if (fireEvents)
+						VirtualView.Activated();
 				}
-			});
+			}, false);
 		}
 
-		void CloseView(IView view, UIWindow platformView, Action finishedClosing)
+		// If the content on the window is updated as part of the test
+		// this logic takes care of removing the old view and then adding the incoming
+		// view to the testing surface
+		void ReplaceCurrentView(IView view, UIWindow platformView, Action finishedClosing, bool disconnecting)
 		{
 			if (view == null)
 			{
@@ -52,6 +74,7 @@ namespace Microsoft.Maui.DeviceTests.Stubs
 			}
 
 			var vc = (view.Handler as IPlatformViewHandler).ViewController;
+			var virtualView = VirtualView;
 
 			if (view is IFlyoutView)
 			{
@@ -63,19 +86,33 @@ namespace Microsoft.Maui.DeviceTests.Stubs
 					return;
 				}
 
+				if (disconnecting)
+					virtualView.Deactivated();
+
 				pvc.DismissViewController(false,
 					() =>
 					{
 						finishedClosing.Invoke();
+
+						if (disconnecting)
+							virtualView.Destroying();
 					});
 			}
 			else
 			{
+				vc.RemoveFromParentViewController();
+
 				view
 					.ToPlatform()
 					.RemoveFromSuperview();
 
 				finishedClosing.Invoke();
+
+				if (disconnecting)
+				{
+					virtualView.Deactivated();
+					virtualView.Destroying();
+				}
 			}
 
 		}
@@ -87,7 +124,7 @@ namespace Microsoft.Maui.DeviceTests.Stubs
 
 		protected override void DisconnectHandler(UIWindow platformView)
 		{
-			CloseView(VirtualView.Content, platformView, () => _finishedDisconnecting.SetResult(true));
+			ReplaceCurrentView(VirtualView.Content, platformView, () => _finishedDisconnecting.SetResult(true), true);
 			base.DisconnectHandler(platformView);
 		}
 

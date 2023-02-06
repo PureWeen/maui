@@ -20,15 +20,73 @@ namespace Microsoft.Maui.Controls.Platform
 			_window = window;
 		}
 
-		public Task<Page> PopModalAsync()
+		public Task<Page?> PopModalAsync()
 		{
 			return PopModalAsync(true);
 		}
 
-
 		public Task PushModalAsync(Page modal)
 		{
 			return PushModalAsync(modal, true);
+		}
+
+		public async Task<Page?> PopModalAsync(bool animated)
+		{
+			Page modal = _window.ModalNavigationManager.ModalStack[_window.ModalNavigationManager.ModalStack.Count - 1];
+			if (_window.OnModalPopping(modal))
+			{
+				_window.OnPopCanceled();
+				return null;
+			}
+
+			Page? nextPage;
+			if (modal.NavigationProxy.ModalStack.Count == 1)
+			{
+				nextPage = _window.Page;
+			}
+			else
+			{
+				nextPage = ModalStack[ModalStack.Count - 2];
+			}
+
+			_navModel.LastRoot.SendDisappearing();
+			Page result = await PopModalPlatformAsync(animated);
+			result.Parent = null;
+			_window.OnModalPopped(result);
+
+			modal.SendNavigatedFrom(new NavigatedFromEventArgs(nextPage));
+			nextPage?.SendNavigatedTo(new NavigatedToEventArgs(modal));
+
+			return result;
+		}
+
+		public async Task PushModalAsync(Page modal, bool animated)
+		{
+			_window.OnModalPushing(modal);
+
+			modal.Parent = _window;
+
+			if (ModalStack.Count == 0)
+			{
+				_window.Page?.SendDisappearing();
+				modal.SendAppearing();
+				modal.NavigationProxy.Inner = _window.Navigation;
+				await PushModalPlatformAsync(modal, animated);
+				_window.Page?.SendNavigatedFrom(new NavigatedFromEventArgs(modal));
+				modal.SendNavigatedTo(new NavigatedToEventArgs(_window.Page));
+			}
+			else
+			{
+				var previousModalPage = modal.NavigationProxy.ModalStack[modal.NavigationProxy.ModalStack.Count - 1];
+				previousModalPage.SendDisappearing();
+				modal.SendAppearing();
+				await PushModalPlatformAsync(modal, animated);
+				modal.NavigationProxy.Inner = _window.Navigation;
+				previousModalPage.SendNavigatedFrom(new NavigatedFromEventArgs(modal));
+				modal.SendNavigatedTo(new NavigatedToEventArgs(previousModalPage));
+			}
+
+			_window.OnModalPushed(modal);
 		}
 
 		internal void SettingNewPage()

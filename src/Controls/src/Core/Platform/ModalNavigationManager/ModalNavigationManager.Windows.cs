@@ -10,7 +10,7 @@ namespace Microsoft.Maui.Controls.Platform
 			_window.NativeWindow.Content as WindowRootViewContainer ??
 			throw new InvalidOperationException("Root container Panel not found");
 
-		public Task<Page> PopModalAsync(bool animated)
+		Task<Page> PopModalPlatformAsync(bool animated)
 		{
 			var tcs = new TaskCompletionSource<Page>();
 			var currentPage = _navModel.CurrentPage;
@@ -19,7 +19,7 @@ namespace Microsoft.Maui.Controls.Platform
 			return tcs.Task;
 		}
 
-		public Task PushModalAsync(Page modal, bool animated)
+		Task PushModalPlatformAsync(Page modal, bool animated)
 		{
 			_ = modal ?? throw new ArgumentNullException(nameof(modal));
 
