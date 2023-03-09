@@ -38,6 +38,8 @@ namespace Microsoft.Maui.Controls.Hosting.WPF
 			handlersCollection.AddHandler<Window, WindowHandler>();
 			handlersCollection.AddHandler<Label, LabelHandler>();
 			handlersCollection.AddHandler<ContentPage, PageHandler>();
+			handlersCollection.AddHandler<Layout, LayoutHandler>();
+			handlersCollection.AddHandler<AspNetCore.Components.WebView.Maui.BlazorWebView, AspNetCore.Components.WebView.Maui.WPF.BlazorWebViewHandler>();
 
 			return handlersCollection;
 		}

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.Maui.Dispatching;
@@ -20,19 +21,28 @@ namespace Microsoft.Maui.Platform.WPF
 
 	public partial class WPFDispatcher : IDispatcher
 	{
+		public static System.Windows.Threading.Dispatcher? ReplacHack { get; set; }
+
 		readonly System.Windows.Threading.Dispatcher _dispatcherQueue;
-		public System.Windows.Threading.Dispatcher Dispatcher => _dispatcherQueue;
+		public System.Windows.Threading.Dispatcher Dispatcher => ReplacHack ?? _dispatcherQueue;
 
 		internal WPFDispatcher(System.Windows.Threading.Dispatcher dispatcherQueue)
 		{
 			_dispatcherQueue = dispatcherQueue ?? throw new ArgumentNullException(nameof(dispatcherQueue));
 		}
 
-		public bool IsDispatchRequired => throw new NotImplementedException();
+		public bool IsDispatchRequired
+		{
+			get
+			{
+				var result = System.Windows.Threading.Dispatcher.FromThread(Thread.CurrentThread);
+				return result != Dispatcher;
+			}
+		}
 
 		public bool Dispatch(Action action)
 		{
-			_dispatcherQueue.BeginInvoke(action, null);
+			Dispatcher.BeginInvoke(action, null);
 			return true;
 		}
 

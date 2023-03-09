@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MauiApp7;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Hosting;
@@ -12,18 +15,31 @@ namespace Maui.Controls.Sample.WPF
 {
 	public static class MauiProgram
 	{
-		public static MauiApp CreateMauiApp() =>
-			MauiApp
+		public static MauiApp CreateMauiApp()
+		{
+			var builder =  MauiApp
 				.CreateBuilder()
-				.UseMauiAppWPF<App>()
-				.Build();
+				.UseMauiAppWPF<App>();
+
+
+			builder.Services.AddMauiBlazorWebView();
+			builder.Services.AddWpfBlazorWebView();
+
+#if DEBUG
+			builder.Services.AddSingleton<Microsoft.AspNetCore.Components.WebView.Wpf.BlazorWebViewDeveloperTools>(new Microsoft.AspNetCore.Components.WebView.Wpf.BlazorWebViewDeveloperTools { Enabled = true });
+			builder.Logging.AddDebug();
+#endif
+
+			return builder.Build();
+		}
 	}
 
 	class App : Application
 	{
 		protected override Window CreateWindow(IActivationState? activationState)
 		{
-			return new Window(new ContentPage() { Content = new Label() { Text = "What is this" } });
+			return new Window(new MainPage());
+			//return new Window(new ContentPage() { Content = new Label() { Text = @"Welcome to the Dub P EF \m/" } });
 		}
 	}
 
