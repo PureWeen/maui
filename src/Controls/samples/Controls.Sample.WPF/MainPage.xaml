@@ -8,15 +8,10 @@
              
              >
 
-    <VerticalStackLayout >
-        <Label Text="W"></Label>
-        <Label Text="P"></Label>
-        <local:WPFBlazorWebView WidthRequest="500" HeightRequest="500" x:Name="blazorWebView" HostPage="wwwroot/index.html">
-            <blazor:BlazorWebView.RootComponents>
-                <blazor:RootComponent Selector="#app" ComponentType="{x:Type local:Main}" />
-            </blazor:BlazorWebView.RootComponents>
-        </local:WPFBlazorWebView>
-        <Label Text="F"></Label>
-    </VerticalStackLayout>
+    <local:WPFBlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html">
+        <blazor:BlazorWebView.RootComponents>
+            <blazor:RootComponent Selector="#app" ComponentType="{x:Type local:Main}" />
+        </blazor:BlazorWebView.RootComponents>
+    </local:WPFBlazorWebView>
 
 </maui:ContentPage>
