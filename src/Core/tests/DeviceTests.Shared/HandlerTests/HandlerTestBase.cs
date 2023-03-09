@@ -59,6 +59,15 @@ namespace Microsoft.Maui.DeviceTests
 			}
 		}
 
+		protected IServiceProvider ApplicationServices
+		{
+			get
+			{
+				EnsureHandlerCreated();
+				return _servicesProvider;
+			}
+		}
+
 		protected Task SetValueAsync<TValue, THandler>(IView view, TValue value, Action<THandler, TValue> func)
 			where THandler : IElementHandler, new()
 		{
@@ -148,13 +157,19 @@ namespace Microsoft.Maui.DeviceTests
 
 		}
 
-		protected Task ValidateHasColor(IView view, Color color, Type handlerType, Action action = null)
+		protected Task ValidateHasColor(IView view, Color color, Type handlerType, Action action = null, string updatePropertyValue = null)
 		{
 #if !TIZEN
 			return InvokeOnMainThreadAsync(async () =>
 			{
-				var plaformView = CreateHandler(view, handlerType).ToPlatform();
+				var handler = CreateHandler(view, handlerType);
+				var plaformView = handler.ToPlatform();
 				action?.Invoke();
+				if (!string.IsNullOrEmpty(updatePropertyValue))
+				{
+					handler.UpdateValue(updatePropertyValue);
+				}
+
 				await plaformView.AssertContainsColor(color);
 			});
 #else

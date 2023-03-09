@@ -67,6 +67,26 @@ namespace Microsoft.Maui.DeviceTests
 			Assert.Equal(expectedValue, values.PlatformViewValue);
 		}
 
+		async protected Task ValidatePropertyInitValue<TValue>(
+			IView view,
+			Func<TValue> GetValue,
+			Func<THandler, TValue> GetPlatformValue,
+			TValue expectedValue,
+			TValue expectedPlatformValue)
+		{
+			var values = await GetValueAsync(view, (handler) =>
+			{
+				return new
+				{
+					ViewValue = GetValue(),
+					PlatformViewValue = GetPlatformValue(handler)
+				};
+			});
+
+			Assert.Equal(expectedValue, values.ViewValue);
+			Assert.Equal(expectedPlatformValue, values.PlatformViewValue);
+		}
+
 		async protected Task ValidatePropertyUpdatesValue<TValue>(
 			IView view,
 			string property,
@@ -158,9 +178,9 @@ namespace Microsoft.Maui.DeviceTests
 			Assert.Equal(initialNativeVal, newNativeVal);
 		}
 
-		protected Task ValidateHasColor(IView view, Color color, Action action = null) =>
-			ValidateHasColor(view, color, typeof(THandler), action);
-			
+		protected Task ValidateHasColor(IView view, Color color, Action action = null, string updatePropertyValue = null) =>
+			ValidateHasColor(view, color, typeof(THandler), action, updatePropertyValue);
+
 		void MockAccessibilityExpectations(TStub view)
 		{
 #if IOS || MACCATALYST
