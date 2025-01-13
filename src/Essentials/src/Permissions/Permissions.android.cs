@@ -53,17 +53,32 @@ namespace Microsoft.Maui.ApplicationModel
 			public override Task<PermissionStatus> CheckStatusAsync()
 			{
 				if (RequiredPermissions == null || RequiredPermissions.Length <= 0)
+				{
 					return Task.FromResult(PermissionStatus.Granted);
+				}
 
 				foreach (var (androidPermission, isRuntime) in RequiredPermissions)
 				{
 					var ap = androidPermission;
 					if (!IsDeclaredInManifest(ap))
+					{
 						throw new PermissionException($"You need to declare using the permission: `{androidPermission}` in your AndroidManifest.xml");
+					}
 
 					var status = DoCheck(ap);
 					if (status != PermissionStatus.Granted)
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
 						return Task.FromResult(PermissionStatus.Denied);
+After:
+					{
+						return Task.FromResult(PermissionStatus.Denied);
+*/
+					{
+						return Task.FromResult(PermissionStatus.Denied);
+					}
+					}
 				}
 
 				return Task.FromResult(PermissionStatus.Granted);
@@ -73,7 +88,9 @@ namespace Microsoft.Maui.ApplicationModel
 			{
 				// Check status before requesting first
 				if (await CheckStatusAsync() == PermissionStatus.Granted)
+				{
 					return PermissionStatus.Granted;
+				}
 
 				var runtimePermissions = RequiredPermissions.Where(p => p.isRuntime)
 					?.Select(p => p.androidPermission)?.ToArray();
@@ -81,11 +98,34 @@ namespace Microsoft.Maui.ApplicationModel
 				// We may have no runtime permissions required, in this case
 				// knowing they all exist in the manifest from the Check call above is sufficient
 				if (runtimePermissions == null || !runtimePermissions.Any())
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
 					return PermissionStatus.Granted;
 
 				var permissionResult = await DoRequest(runtimePermissions);
 				if (permissionResult.GrantResults.Any(g => g == Permission.Denied))
 					return PermissionStatus.Denied;
+After:
+				{
+					return PermissionStatus.Granted;
+				}
+
+				var permissionResult = await DoRequest(runtimePermissions);
+				if (permissionResult.GrantResults.Any(g => g == Permission.Denied))
+				{
+					return PermissionStatus.Denied;
+				}
+*/
+				{
+					return PermissionStatus.Granted;
+				}
+
+				var permissionResult = await DoRequest(runtimePermissions);
+				if (permissionResult.GrantResults.Any(g => g == Permission.Denied))
+				{
+					return PermissionStatus.Denied;
+				}
 
 				return PermissionStatus.Granted;
 			}
@@ -104,7 +144,9 @@ namespace Microsoft.Maui.ApplicationModel
 				}
 
 				if (!MainThread.IsMainThread)
+				{
 					throw new PermissionException("Permission request must be invoked on main thread.");
+				}
 
 				ActivityCompat.RequestPermissions(ActivityStateManager.Default.GetCurrentActivity(true), permissions.ToArray(), requestCode);
 
@@ -115,26 +157,34 @@ namespace Microsoft.Maui.ApplicationModel
 			public override void EnsureDeclared()
 			{
 				if (RequiredPermissions == null || RequiredPermissions.Length <= 0)
+				{
 					return;
+				}
 
 				foreach (var (androidPermission, isRuntime) in RequiredPermissions)
 				{
 					var ap = androidPermission;
 					if (!IsDeclaredInManifest(ap))
+					{
 						throw new PermissionException($"You need to declare using the permission: `{androidPermission}` in your AndroidManifest.xml");
+					}
 				}
 			}
 
 			public override bool ShouldShowRationale()
 			{
 				if (RequiredPermissions == null || RequiredPermissions.Length <= 0)
+				{
 					return false;
+				}
 
 				var activity = ActivityStateManager.Default.GetCurrentActivity(true);
 				foreach (var (androidPermission, isRuntime) in RequiredPermissions)
 				{
 					if (isRuntime && ActivityCompat.ShouldShowRequestPermissionRationale(activity, androidPermission))
+					{
 						return true;
+					}
 				}
 
 				return false;
@@ -146,7 +196,9 @@ namespace Microsoft.Maui.ApplicationModel
 				var targetsMOrHigher = context.ApplicationInfo.TargetSdkVersion >= BuildVersionCodes.M;
 
 				if (!IsDeclaredInManifest(androidPermission))
+				{
 					throw new PermissionException($"You need to declare using the permission: `{androidPermission}` in your AndroidManifest.xml");
+				}
 
 				var status = PermissionStatus.Granted;
 
@@ -206,18 +258,112 @@ namespace Microsoft.Maui.ApplicationModel
 					// When targeting Android 11 or lower, AccessFineLocation is required for Bluetooth.
 					// For Android 12 and above, it is optional.
 					if (Application.Context.ApplicationInfo.TargetSdkVersion <= BuildVersionCodes.R || IsDeclaredInManifest(Manifest.Permission.AccessFineLocation))
+					{
 						permissions.Add((Manifest.Permission.AccessFineLocation, true));
+					}
 
 #if __ANDROID_31__
 					if (OperatingSystem.IsAndroidVersionAtLeast(31) && Application.Context.ApplicationInfo.TargetSdkVersion >= BuildVersionCodes.S)
 					{
 						// new runtime permissions on Android 12
 						if (IsDeclaredInManifest(Manifest.Permission.BluetoothScan))
+						{
 							permissions.Add((Manifest.Permission.BluetoothScan, true));
+						}
+
 						if (IsDeclaredInManifest(Manifest.Permission.BluetoothConnect))
+						
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+					return PermissionStatus.Granted;
+After:
+				{
+					return PermissionStatus.Granted;
+				}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+						permissions.Add((Manifest.Permission.AccessFineLocation, true));
+After:
+					{
+						permissions.Add((Manifest.Permission.AccessFineLocation, true));
+					}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+						permissions.Add((Manifest.Permission.ChangeNetworkState, true));
+After:
+					{
+						permissions.Add((Manifest.Permission.ChangeNetworkState, true));
+					}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+						permissions.Add((Manifest.Permission.CallPhone, true));
+					if (IsDeclaredInManifest(Manifest.Permission.ReadCallLog))
+						permissions.Add((Manifest.Permission.ReadCallLog, true));
+					if (IsDeclaredInManifest(Manifest.Permission.WriteCallLog))
+						permissions.Add((Manifest.Permission.WriteCallLog, true));
+					if (IsDeclaredInManifest(Manifest.Permission.AddVoicemail))
+						permissions.Add((Manifest.Permission.AddVoicemail, true));
+					if (IsDeclaredInManifest(Manifest.Permission.UseSip))
+						permissions.Add((Manifest.Permission.UseSip, true));
+					if (OperatingSystem.IsAndroidVersionAtLeast(26))
+					{
+						if (IsDeclaredInManifest(Manifest.Permission.AnswerPhoneCalls))
+							permissions.Add((Manifest.Permission.AnswerPhoneCalls, true));
+After:
+					{
+						permissions.Add((Manifest.Permission.CallPhone, true));
+					}
+
+					if (IsDeclaredInManifest(Manifest.Permission.ReadCallLog))
+					{
+						permissions.Add((Manifest.Permission.ReadCallLog, true));
+					}
+
+					if (IsDeclaredInManifest(Manifest.Permission.WriteCallLog))
+					{
+						permissions.Add((Manifest.Permission.WriteCallLog, true));
+					}
+
+					if (IsDeclaredInManifest(Manifest.Permission.AddVoicemail))
+					{
+						permissions.Add((Manifest.Permission.AddVoicemail, true));
+					}
+
+					if (IsDeclaredInManifest(Manifest.Permission.UseSip))
+					{
+						permissions.Add((Manifest.Permission.UseSip, true));
+					}
+
+					if (OperatingSystem.IsAndroidVersionAtLeast(26))
+					{
+						if (IsDeclaredInManifest(Manifest.Permission.AnswerPhoneCalls))
+						{
+							permissions.Add((Manifest.Permission.AnswerPhoneCalls, true));
+						}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+							System.Diagnostics.Debug.WriteLine($"{Manifest.Permission.ProcessOutgoingCalls} is deprecated in Android 10");
+After:
+						{
+							System.Diagnostics.Debug.WriteLine($"{Manifest.Permission.ProcessOutgoingCalls} is deprecated in Android 10");
+						}
+*/
+{
 							permissions.Add((Manifest.Permission.BluetoothConnect, true));
+						}
+
 						if (IsDeclaredInManifest(Manifest.Permission.BluetoothAdvertise))
+						{
 							permissions.Add((Manifest.Permission.BluetoothAdvertise, true));
+						}
 					}
 #endif
 
@@ -234,6 +380,47 @@ namespace Microsoft.Maui.ApplicationModel
 
 		public partial class CalendarWrite : BasePlatformPermission
 		{
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+						permissions.Add((Manifest.Permission.SendSms, true));
+After:
+					{
+						permissions.Add((Manifest.Permission.SendSms, true));
+					}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+						permissions.Add((Manifest.Permission.ReadSms, true));
+After:
+					{
+						permissions.Add((Manifest.Permission.ReadSms, true));
+					}
+*/
+
+/* Unmerged change from project 'Essentials(net7.0-android)'
+Before:
+						permissions.Add((Manifest.Permission.ReceiveWapPush, true));
+					if (IsDeclaredInManifest(Manifest.Permission.ReceiveMms))
+						permissions.Add((Manifest.Permission.ReceiveMms, true));
+					if (IsDeclaredInManifest(Manifest.Permission.ReceiveSms))
+						permissions.Add((Manifest.Permission.ReceiveSms, true));
+After:
+					{
+						permissions.Add((Manifest.Permission.ReceiveWapPush, true));
+					}
+
+					if (IsDeclaredInManifest(Manifest.Permission.ReceiveMms))
+					{
+						permissions.Add((Manifest.Permission.ReceiveMms, true));
+					}
+
+					if (IsDeclaredInManifest(Manifest.Permission.ReceiveSms))
+					{
+						permissions.Add((Manifest.Permission.ReceiveSms, true));
+					}
+*/
 			public override (string androidPermission, bool isRuntime)[] RequiredPermissions =>
 				new (string, bool)[] { (Manifest.Permission.WriteCalendar, true) };
 		}
@@ -283,7 +470,9 @@ namespace Microsoft.Maui.ApplicationModel
 			{
 				// Check status before requesting first
 				if (await CheckStatusAsync() == PermissionStatus.Granted)
+				{
 					return PermissionStatus.Granted;
+				}
 
 				var permissionResult = await DoRequest(new string[] { Manifest.Permission.AccessCoarseLocation, Manifest.Permission.AccessFineLocation });
 
@@ -308,7 +497,9 @@ namespace Microsoft.Maui.ApplicationModel
 #if __ANDROID_29__
 					// Check if running and targeting Q
 					if (OperatingSystem.IsAndroidVersionAtLeast(29) && Application.Context.ApplicationInfo.TargetSdkVersion >= BuildVersionCodes.Q)
+					{
 						permissions.Add((Manifest.Permission.AccessBackgroundLocation, true));
+					}
 #endif
 
 					permissions.Add((Manifest.Permission.AccessCoarseLocation, true));
@@ -323,17 +514,23 @@ namespace Microsoft.Maui.ApplicationModel
 			{
 				// Check status before requesting first
 				if (await CheckStatusAsync() == PermissionStatus.Granted)
+				{
 					return PermissionStatus.Granted;
+				}
 
 				if (OperatingSystem.IsAndroidVersionAtLeast(30))
 				{
 					var permissionResult = await new LocationWhenInUse().RequestAsync();
 					if (permissionResult == PermissionStatus.Denied)
+					{
 						return PermissionStatus.Denied;
+					}
 
 					var result = await DoRequest(new string[] { Manifest.Permission.AccessBackgroundLocation });
 					if (!result.GrantResults.All(x => x == Permission.Granted))
+					{
 						permissionResult = PermissionStatus.Restricted;
+					}
 
 					return permissionResult;
 				}
@@ -367,14 +564,18 @@ namespace Microsoft.Maui.ApplicationModel
 					// When targeting Android 12 or lower, AccessFineLocation is required for several WiFi APIs.
 					// For Android 13 and above, it is optional.
 					if (Application.Context.ApplicationInfo.TargetSdkVersion < BuildVersionCodes.Tiramisu || IsDeclaredInManifest(Manifest.Permission.AccessFineLocation))
+					{
 						permissions.Add((Manifest.Permission.AccessFineLocation, true));
+					}
 
 #if __ANDROID_33__
 					if (OperatingSystem.IsAndroidVersionAtLeast(33) && Application.Context.ApplicationInfo.TargetSdkVersion >= BuildVersionCodes.Tiramisu)
 					{
 						// new runtime permission on Android 13
 						if (IsDeclaredInManifest(Manifest.Permission.NearbyWifiDevices))
+						{
 							permissions.Add((Manifest.Permission.NearbyWifiDevices, true));
+						}
 					}
 #endif
 
@@ -395,7 +596,9 @@ namespace Microsoft.Maui.ApplicationModel
 					};
 
 					if (IsDeclaredInManifest(Manifest.Permission.ChangeNetworkState))
+					{
 						permissions.Add((Manifest.Permission.ChangeNetworkState, true));
+					}
 
 					return permissions.ToArray();
 				}
@@ -414,19 +617,36 @@ namespace Microsoft.Maui.ApplicationModel
 					};
 
 					if (IsDeclaredInManifest(Manifest.Permission.CallPhone))
+					{
 						permissions.Add((Manifest.Permission.CallPhone, true));
+					}
+
 					if (IsDeclaredInManifest(Manifest.Permission.ReadCallLog))
+					{
 						permissions.Add((Manifest.Permission.ReadCallLog, true));
+					}
+
 					if (IsDeclaredInManifest(Manifest.Permission.WriteCallLog))
+					{
 						permissions.Add((Manifest.Permission.WriteCallLog, true));
+					}
+
 					if (IsDeclaredInManifest(Manifest.Permission.AddVoicemail))
+					{
 						permissions.Add((Manifest.Permission.AddVoicemail, true));
+					}
+
 					if (IsDeclaredInManifest(Manifest.Permission.UseSip))
+					{
 						permissions.Add((Manifest.Permission.UseSip, true));
+					}
+
 					if (OperatingSystem.IsAndroidVersionAtLeast(26))
 					{
 						if (IsDeclaredInManifest(Manifest.Permission.AnswerPhoneCalls))
+						{
 							permissions.Add((Manifest.Permission.AnswerPhoneCalls, true));
+						}
 					}
 
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -435,7 +655,10 @@ namespace Microsoft.Maui.ApplicationModel
 					if (IsDeclaredInManifest(Manifest.Permission.ProcessOutgoingCalls))
 					{
 						if (OperatingSystem.IsAndroidVersionAtLeast((int)BuildVersionCodes.Q))
+						{
 							System.Diagnostics.Debug.WriteLine($"{Manifest.Permission.ProcessOutgoingCalls} is deprecated in Android 10");
+						}
+
 						permissions.Add((Manifest.Permission.ProcessOutgoingCalls, true));
 					}
 #pragma warning restore CA1422 // Validate platform compatibility
@@ -468,13 +691,15 @@ namespace Microsoft.Maui.ApplicationModel
 					{
 						// new runtime permissions on Android 12
 						if (IsDeclaredInManifest(Manifest.Permission.PostNotifications))
+						{
 							permissions.Add((Manifest.Permission.PostNotifications, true));
+						}
 					}
 #endif
 
 					return permissions.ToArray();
 				}
-			}						
+			}
 		}
 
 		public partial class Reminders : BasePlatformPermission
@@ -498,15 +723,29 @@ namespace Microsoft.Maui.ApplicationModel
 					};
 
 					if (IsDeclaredInManifest(Manifest.Permission.SendSms))
+					{
 						permissions.Add((Manifest.Permission.SendSms, true));
+					}
+
 					if (IsDeclaredInManifest(Manifest.Permission.ReadSms))
+					{
 						permissions.Add((Manifest.Permission.ReadSms, true));
+					}
+
 					if (IsDeclaredInManifest(Manifest.Permission.ReceiveWapPush))
+					{
 						permissions.Add((Manifest.Permission.ReceiveWapPush, true));
+					}
+
 					if (IsDeclaredInManifest(Manifest.Permission.ReceiveMms))
+					{
 						permissions.Add((Manifest.Permission.ReceiveMms, true));
+					}
+
 					if (IsDeclaredInManifest(Manifest.Permission.ReceiveSms))
+					{
 						permissions.Add((Manifest.Permission.ReceiveSms, true));
+					}
 
 					return permissions.ToArray();
 				}

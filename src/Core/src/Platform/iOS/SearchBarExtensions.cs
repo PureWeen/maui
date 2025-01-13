@@ -10,9 +10,13 @@ namespace Microsoft.Maui.Platform
 		internal static UITextField? GetSearchTextField(this UISearchBar searchBar)
 		{
 			if (OperatingSystem.IsIOSVersionAtLeast(13))
+			{
 				return searchBar.SearchTextField;
+			}
 			else
+			{
 				return searchBar.GetSearchTextField();
+			}
 		}
 
 		internal static void UpdateBackground(this UISearchBar uiSearchBar, ISearchBar searchBar)
@@ -20,13 +24,19 @@ namespace Microsoft.Maui.Platform
 			var background = searchBar.Background;
 
 			if (background is SolidPaint solidPaint)
+			{
 				uiSearchBar.BarTintColor = solidPaint.Color.ToPlatform();
+			}
 
 			if (background is GradientPaint gradientPaint)
+			{
 				ViewExtensions.UpdateBackground(uiSearchBar, gradientPaint);
+			}
 
 			if (background == null)
+			{
 				uiSearchBar.BarTintColor = UISearchBar.Appearance.BarTintColor;
+			}
 		}
 
 		public static void UpdateIsEnabled(this UISearchBar uiSearchBar, ISearchBar searchBar)
@@ -44,7 +54,9 @@ namespace Microsoft.Maui.Platform
 			textField ??= uiSearchBar.GetSearchTextField();
 
 			if (textField == null)
+			{
 				return;
+			}
 
 			var placeholder = searchBar.Placeholder ?? string.Empty;
 			var placeholderColor = searchBar.PlaceholderColor;
@@ -67,7 +79,9 @@ namespace Microsoft.Maui.Platform
 			textField ??= uiSearchBar.GetSearchTextField();
 
 			if (textField == null)
+			{
 				return;
+			}
 
 			textField.UpdateFont(textStyle, fontManager);
 		}
@@ -82,7 +96,9 @@ namespace Microsoft.Maui.Platform
 			textField ??= uiSearchBar.GetSearchTextField();
 
 			if (textField == null)
+			{
 				return;
+			}
 
 			textField.VerticalAlignment = searchBar.VerticalTextAlignment.ToPlatformVertical();
 		}
@@ -92,12 +108,16 @@ namespace Microsoft.Maui.Platform
 			var maxLength = searchBar.MaxLength;
 
 			if (maxLength == -1)
+			{
 				maxLength = int.MaxValue;
+			}
 
 			var currentControlText = uiSearchBar.Text;
 
 			if (currentControlText?.Length > maxLength)
+			{
 				uiSearchBar.Text = currentControlText.Substring(0, maxLength);
+			}
 		}
 
 		public static void UpdateIsReadOnly(this UISearchBar uiSearchBar, ISearchBar searchBar)
@@ -117,7 +137,9 @@ namespace Microsoft.Maui.Platform
 			var cancelButton = uiSearchBar.FindDescendantView<UIButton>();
 
 			if (cancelButton == null)
+			{
 				return;
+			}
 
 			if (searchBar.CancelButtonColor != null)
 			{
@@ -126,7 +148,9 @@ namespace Microsoft.Maui.Platform
 				cancelButton.SetTitleColor(searchBar.CancelButtonColor.ToPlatform(), UIControlState.Disabled);
 
 				if (cancelButton.TraitCollection.UserInterfaceIdiom == UIUserInterfaceIdiom.Mac)
+				{
 					cancelButton.TintColor = searchBar.CancelButtonColor.ToPlatform();
+				}
 			}
 		}
 
@@ -135,12 +159,18 @@ namespace Microsoft.Maui.Platform
 			textField ??= uiSearchBar.GetSearchTextField();
 
 			if (textField == null)
+			{
 				return;
+			}
 
 			if (searchBar.IsTextPredictionEnabled)
+			{
 				textField.AutocorrectionType = UITextAutocorrectionType.Yes;
+			}
 			else
+			{
 				textField.AutocorrectionType = UITextAutocorrectionType.No;
+			}
 		}
 
 		public static void UpdateIsSpellCheckEnabled(this UISearchBar uiSearchBar, ISearchBar searchBar, UITextField? textField = null)
@@ -148,12 +178,18 @@ namespace Microsoft.Maui.Platform
 			textField ??= uiSearchBar.GetSearchTextField();
 
 			if (textField == null)
+			{
 				return;
+			}
 
 			if (searchBar.IsSpellCheckEnabled)
+			{
 				textField.SpellCheckingType = UITextSpellCheckingType.Yes;
+			}
 			else
+			{
 				textField.SpellCheckingType = UITextSpellCheckingType.No;
+			}
 		}
 
 		public static void UpdateKeyboard(this UISearchBar uiSearchBar, ISearchBar searchBar)

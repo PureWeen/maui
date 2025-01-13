@@ -35,12 +35,16 @@ namespace Microsoft.Maui.Controls.Shapes
 				propertyChanging: (bindable, oldvalue, newvalue) =>
 				{
 					if (oldvalue != null)
+					{
 						(bindable as Shape)?.StopNotifyingFillChanges();
+					}
 				},
 				propertyChanged: (bindable, oldvalue, newvalue) =>
 				{
 					if (newvalue != null)
+					{
 						(bindable as Shape)?.NotifyFillChanges();
+					}
 				});
 
 		/// <summary>Bindable property for <see cref="Stroke"/>.</summary>
@@ -49,12 +53,16 @@ namespace Microsoft.Maui.Controls.Shapes
 				propertyChanging: (bindable, oldvalue, newvalue) =>
 				{
 					if (oldvalue != null)
+					{
 						(bindable as Shape)?.StopNotifyingStrokeChanges();
+					}
 				},
 				propertyChanged: (bindable, oldvalue, newvalue) =>
 				{
 					if (newvalue != null)
+					{
 						(bindable as Shape)?.NotifyStrokeChanges();
+					}
 				});
 
 		/// <summary>Bindable property for <see cref="StrokeThickness"/>.</summary>
@@ -195,7 +203,9 @@ namespace Microsoft.Maui.Controls.Shapes
 			var fill = Fill;
 
 			if (fill is ImmutableBrush)
+			{
 				return;
+			}
 
 			if (fill is not null)
 			{
@@ -211,7 +221,9 @@ namespace Microsoft.Maui.Controls.Shapes
 			var fill = Fill;
 
 			if (fill is ImmutableBrush)
+			{
 				return;
+			}
 
 			if (fill is not null)
 			{
@@ -225,7 +237,9 @@ namespace Microsoft.Maui.Controls.Shapes
 			var stroke = Stroke;
 
 			if (stroke is ImmutableBrush)
+			{
 				return;
+			}
 
 			if (stroke is not null)
 			{
@@ -241,7 +255,9 @@ namespace Microsoft.Maui.Controls.Shapes
 			var stroke = Stroke;
 
 			if (stroke is ImmutableBrush)
+			{
 				return;
+			}
 
 			if (stroke is not null)
 			{
@@ -341,7 +357,9 @@ namespace Microsoft.Maui.Controls.Shapes
 			}
 
 			if (!transform.IsIdentity)
+			{
 				path.Transform(transform);
+			}
 #endif
 		}
 
@@ -355,10 +373,14 @@ namespace Microsoft.Maui.Controls.Shapes
 		void PropagateBindingContextToBrush()
 		{
 			if (Fill is not null)
+			{
 				SetInheritedBindingContext(Fill, BindingContext);
+			}
 
 			if (Stroke is not null)
+			{
 				SetInheritedBindingContext(Stroke, BindingContext);
+			}
 		}
 
 		protected override Size MeasureOverride(double widthConstraint, double heightConstraint)
@@ -478,12 +500,16 @@ namespace Microsoft.Maui.Controls.Shapes
 					s.PropertyChanged -= OnBrushChanged;
 
 					if (s is GradientBrush g)
+					{
 						g.InvalidateGradientBrushRequested -= OnBrushChanged;
+					}
 				}
 
 				source.PropertyChanged += OnBrushChanged;
 				if (source is GradientBrush gradientBrush)
+				{
 					gradientBrush.InvalidateGradientBrushRequested += OnBrushChanged;
+				}
 
 				base.Subscribe(source, handler);
 			}
@@ -495,7 +521,9 @@ namespace Microsoft.Maui.Controls.Shapes
 					s.PropertyChanged -= OnBrushChanged;
 
 					if (s is GradientBrush g)
+					{
 						g.InvalidateGradientBrushRequested -= OnBrushChanged;
+					}
 				}
 				base.Unsubscribe();
 			}
