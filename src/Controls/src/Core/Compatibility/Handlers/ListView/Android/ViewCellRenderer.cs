@@ -42,7 +42,9 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			}
 
 			if (cell.View == null)
+			{
 				throw new InvalidOperationException($"ViewCell must have a {nameof(cell.View)}");
+			}
 
 			var view = (IPlatformViewHandler)cell.View.ToHandler(cell.FindMauiContext());
 			cell.View.IsPlatformEnabled = true;
@@ -50,7 +52,9 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			ViewCellContainer c = view.PlatformView.GetParentOfType<ViewCellContainer>();
 
 			if (c != null)
+			{
 				return c;
+			}
 
 			c = new ViewCellContainer(context, (IPlatformViewHandler)cell.View.Handler, cell, ParentView, unevenRows, rowHeight);
 
@@ -156,7 +160,9 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			public override bool OnInterceptTouchEvent(MotionEvent ev)
 			{
 				if (!Enabled)
+				{
 					return true;
+				}
 
 				return base.OnInterceptTouchEvent(ev);
 			}
@@ -209,7 +215,9 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 
 						var oldView = _currentView ?? _viewHandler.PlatformView;
 						if (oldView != null)
+						{
 							RemoveView(oldView);
+						}
 
 						cell.View.Handler?.DisconnectHandler();
 						_viewHandler.SetVirtualView(cell.View);
@@ -252,7 +260,9 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			{
 				var oldView = _currentView ?? _viewHandler.PlatformView;
 				if (oldView != null)
+				{
 					RemoveView(oldView);
+				}
 
 				_viewCell?.View?.Handler?.DisconnectHandler();
 

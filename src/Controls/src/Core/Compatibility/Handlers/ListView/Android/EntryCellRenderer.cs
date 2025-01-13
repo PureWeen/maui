@@ -21,7 +21,9 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			}
 
 			if ((_view = convertView as EntryCellView) == null)
+			{
 				_view = new EntryCellView(context, item);
+			}
 			else
 			{
 				_view.TextChanged = null;
@@ -56,23 +58,41 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			base.OnCellPropertyChanged(sender, e);
 
 			if (e.PropertyName == EntryCell.LabelProperty.PropertyName)
+			{
 				UpdateLabel();
+			}
 			else if (e.PropertyName == EntryCell.TextProperty.PropertyName)
+			{
 				UpdateText();
+			}
 			else if (e.PropertyName == EntryCell.PlaceholderProperty.PropertyName)
+			{
 				UpdatePlaceholder();
+			}
 			else if (e.PropertyName == EntryCell.KeyboardProperty.PropertyName)
+			{
 				UpdateKeyboard();
+			}
 			else if (e.PropertyName == EntryCell.LabelColorProperty.PropertyName)
+			{
 				UpdateLabelColor();
+			}
 			else if (e.PropertyName == EntryCell.HorizontalTextAlignmentProperty.PropertyName)
+			{
 				UpdateHorizontalTextAlignment();
+			}
 			else if (e.PropertyName == EntryCell.VerticalTextAlignmentProperty.PropertyName)
+			{
 				UpdateVerticalTextAlignment();
+			}
 			else if (e.PropertyName == Cell.IsEnabledProperty.PropertyName)
+			{
 				UpdateIsEnabled();
+			}
 			else if (e.PropertyName == "RenderHeight")
+			{
 				UpdateHeight();
+			}
 			else if (e.PropertyName == VisualElement.FlowDirectionProperty.PropertyName)
 			{
 				UpdateFlowDirection();
@@ -162,7 +182,9 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 		{
 			var entryCell = (EntryCell)Cell;
 			if (_view.EditText.Text == entryCell.Text)
+			{
 				return;
+			}
 
 			_view.EditText.Text = entryCell.Text;
 		}

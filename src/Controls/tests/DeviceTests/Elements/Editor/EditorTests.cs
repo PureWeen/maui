@@ -55,9 +55,13 @@ namespace Microsoft.Maui.DeviceTests
 				await WaitForUIUpdate(frame, editor);
 
 				if (option == EditorAutoSizeOption.TextChanges)
+				{
 					Assert.True(initialHeight < editor.Height);
+				}
 				else
+				{
 					Assert.Equal(initialHeight, editor.Height);
+				}
 			});
 		}
 

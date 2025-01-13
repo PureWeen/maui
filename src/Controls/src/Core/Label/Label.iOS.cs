@@ -35,7 +35,9 @@ namespace Microsoft.Maui.Controls
 			}
 
 			if (!IsPlainText(label))
+			{
 				return;
+			}
 
 			LabelHandler.MapFormatting(handler, label);
 		}

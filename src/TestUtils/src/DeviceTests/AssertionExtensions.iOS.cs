@@ -145,7 +145,9 @@ namespace Microsoft.Maui.DeviceTests
 			while (viewController.PresentedViewController is not null)
 			{
 				if (viewController is ModalWrapper || viewController.PresentedViewController is ModalWrapper)
+				{
 					throw new InvalidOperationException("Modal Window Is Still Present");
+				}
 
 				viewController = viewController.PresentedViewController;
 			}
@@ -185,8 +187,9 @@ namespace Microsoft.Maui.DeviceTests
 		public static Task<UIImage> ToBitmap(this UIView view, IMauiContext mauiContext)
 		{
 			if (view.Superview is WrapperView wrapper)
+			{
 				view = wrapper;
-
+			}
 
 			var imageRect = new CGRect(0, 0, view.Frame.Width, view.Frame.Height);
 
@@ -262,7 +265,9 @@ namespace Microsoft.Maui.DeviceTests
 			var cap = bitmap.ColorAtPoint(x, y);
 
 			if (!ColorComparison.ARGBEquivalent(cap, expectedColor, tolerance))
+			{
 				throw new XunitException(CreateColorAtPointError(bitmap, expectedColor, x, y));
+			}
 
 			return bitmap;
 		}
@@ -367,7 +372,9 @@ namespace Microsoft.Maui.DeviceTests
 			var imageRect = new Graphics.RectF(0, 0, (float)bitmap.Size.Width.Value, (float)bitmap.Size.Height.Value);
 
 			if (withinRectModifier is not null)
+			{
 				imageRect = withinRectModifier.Invoke(imageRect);
+			}
 
 			for (int x = (int)imageRect.X; x < (int)imageRect.Width; x++)
 			{
@@ -388,7 +395,9 @@ namespace Microsoft.Maui.DeviceTests
 			var imageRect = new Graphics.RectF(0, 0, (float)bitmap.Size.Width.Value, (float)bitmap.Size.Height.Value);
 
 			if (withinRectModifier is not null)
+			{
 				imageRect = withinRectModifier.Invoke(imageRect);
+			}
 
 			for (int x = (int)imageRect.X; x < (int)imageRect.Width; x++)
 			{
@@ -426,7 +435,9 @@ namespace Microsoft.Maui.DeviceTests
 						var second = other.ColorAtPoint(x, y);
 
 						if (!ColorComparison.ARGBEquivalent(first, second))
+						{
 							return false;
+						}
 					}
 				}
 				return true;
@@ -437,9 +448,13 @@ namespace Microsoft.Maui.DeviceTests
 		{
 			var bitmap = await view.ToBitmap(mauiContext);
 			if (ex is null)
+			{
 				throw new XunitException(CreateScreenshotError(bitmap, message ?? "There was an error."));
+			}
 			else
+			{
 				throw new XunitException(CreateScreenshotError(bitmap, message ?? "There was an error: " + ex.Message), ex);
+			}
 		}
 
 		public static UILineBreakMode ToPlatform(this LineBreakMode mode) =>
@@ -457,14 +472,20 @@ namespace Microsoft.Maui.DeviceTests
 		public static double GetCharacterSpacing(this NSAttributedString text)
 		{
 			if (text == null)
+			{
 				return 0;
+			}
 
 			if (text.Length == 0)
+			{
 				return 0;
+			}
 
 			var value = text.GetAttribute(UIStringAttributeKey.KerningAdjustment, 0, out var range);
 			if (value == null)
+			{
 				return 0;
+			}
 
 			Assert.Equal(0, range.Location);
 			Assert.Equal(text.Length, range.Length);
@@ -477,14 +498,20 @@ namespace Microsoft.Maui.DeviceTests
 		public static double GetLineHeight(this NSAttributedString text)
 		{
 			if (text == null)
+			{
 				return 0;
+			}
 
 			if (text.Length == 0)
+			{
 				return 0;
+			}
 
 			var value = text.GetAttribute(UIStringAttributeKey.ParagraphStyle, 0, out var range);
 			if (value == null)
+			{
 				return 0;
+			}
 
 			Assert.Equal(0, range.Location);
 			Assert.Equal(text.Length, range.Length);
@@ -499,10 +526,14 @@ namespace Microsoft.Maui.DeviceTests
 			var textDecorations = TextDecorations.None;
 
 			if (text == null)
+			{
 				return textDecorations;
+			}
 
 			if (text.Length == 0)
+			{
 				return textDecorations;
+			}
 
 			var valueUnderline = text.GetAttribute(UIStringAttributeKey.UnderlineStyle, 0, out var rangeUnderline);
 			var valueStrikethrough = text.GetAttribute(UIStringAttributeKey.StrikethroughStyle, 0, out var rangeStrikethrough);
@@ -538,12 +569,16 @@ namespace Microsoft.Maui.DeviceTests
 		public static UIColor GetForegroundColor(this NSAttributedString text)
 		{
 			if (text == null)
+			{
 				return UIColor.Clear;
+			}
 
 			var value = text.GetAttribute(UIStringAttributeKey.ForegroundColor, 0, out var range);
 
 			if (value == null)
+			{
 				return UIColor.Clear;
+			}
 
 			Assert.Equal(0, range.Location);
 			Assert.Equal(text.Length, range.Length);
@@ -609,7 +644,9 @@ namespace Microsoft.Maui.DeviceTests
 			{
 				var window = windows[i];
 				if (window.IsKeyWindow)
+				{
 					return window;
+				}
 			}
 
 			return null;
@@ -631,7 +668,9 @@ namespace Microsoft.Maui.DeviceTests
 				// iOS sets it to not be important for accessibility
 				// most likely because the children elements need to be reachable
 				if (platformView is UIStepper || platformView is UIPageControl)
+				{
 					return;
+				}
 
 				// UILabel will only be an accessibility element if it has text
 				if (platformView is UILabel label && !String.IsNullOrWhiteSpace(label.Text))
@@ -679,7 +718,9 @@ namespace Microsoft.Maui.DeviceTests
 		public static UIView GetAccessiblePlatformView(this UIView platformView)
 		{
 			if (platformView is UISearchBar searchBar)
+			{
 				platformView = searchBar.GetSearchTextField()!;
+			}
 
 			if (platformView is WrapperView wrapperView)
 			{
@@ -779,7 +820,9 @@ namespace Microsoft.Maui.DeviceTests
 		{
 			var tabBarItemView = GetTabItemView(navigationView, tabText).FindDescendantView<UILabel>();
 			if (tabBarItemView is null)
+			{
 				throw new Exception($"Unable to locate Tab Item Icon Container: {tabText}");
+			}
 
 			if (hasColor)
 			{
@@ -797,7 +840,9 @@ namespace Microsoft.Maui.DeviceTests
 		{
 			var tabBarItemView = GetTabItemView(navigationView, tabText).FindDescendantView<UIImageView>();
 			if (tabBarItemView is null)
+			{
 				throw new Exception($"Unable to locate Tab Item Icon Container: {tabText}");
+			}
 
 			if (hasColor)
 			{
@@ -826,12 +871,16 @@ namespace Microsoft.Maui.DeviceTests
 			var tabBarItem = tabBar.Items?.Single(t => string.Equals(t.Title, tabText, StringComparison.OrdinalIgnoreCase));
 
 			if (tabBarItem is null)
+			{
 				throw new Exception($"Unable to find tab bar item: {tabText}");
+			}
 
 			var tabBarItemView = tabBarItem.ValueForKey(new Foundation.NSString("view")) as UIView;
 
 			if (tabBarItemView is null)
+			{
 				throw new Exception($"Unable to find tab bar item: {tabText}");
+			}
 
 			return tabBarItemView;
 		}
