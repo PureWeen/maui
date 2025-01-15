@@ -61,9 +61,26 @@ namespace Microsoft.Maui.Controls
 		static void MapTextOrFormattedText(ILabelHandler handler, Label label)
 		{
 			if (label.HasFormattedTextSpans)
+
+/* Unmerged change from project 'Controls.Core(net8.0-ios)'
+Before:
 				handler.UpdateValue(nameof(FormattedText));
 			else
+After:
+			{
+				handler.UpdateValue(nameof(FormattedText));
+			}
+			else
+			{
+*/
+			{
+				handler.UpdateValue(nameof(FormattedText));
+			}
+			else
+			{
 				handler.UpdateValue(nameof(Text));
+			}
+			}
 		}
 
 #if ANDROID || IOS
@@ -105,7 +122,9 @@ namespace Microsoft.Maui.Controls
 		static void MapLineHeight(ILabelHandler handler, Label label, Action<IElementHandler, IElement> baseMethod)
 		{
 			if (!IsPlainText(label))
+			{
 				return;
+			}
 
 			baseMethod?.Invoke(handler, label);
 		}
@@ -113,7 +132,9 @@ namespace Microsoft.Maui.Controls
 		static void MapTextDecorations(ILabelHandler handler, Label label, Action<IElementHandler, IElement> baseMethod)
 		{
 			if (!IsPlainText(label))
+			{
 				return;
+			}
 
 			baseMethod?.Invoke(handler, label);
 		}
@@ -121,7 +142,9 @@ namespace Microsoft.Maui.Controls
 		static void MapCharacterSpacing(ILabelHandler handler, Label label, Action<IElementHandler, IElement> baseMethod)
 		{
 			if (!IsPlainText(label))
+			{
 				return;
+			}
 
 			baseMethod?.Invoke(handler, label);
 		}
@@ -165,10 +188,14 @@ namespace Microsoft.Maui.Controls
 		static bool IsPlainText(Label label)
 		{
 			if (label.HasFormattedTextSpans)
+			{
 				return false;
+			}
 
 			if (label.TextType != TextType.Text)
+			{
 				return false;
+			}
 
 			return true;
 		}
@@ -176,13 +203,19 @@ namespace Microsoft.Maui.Controls
 		static bool IsDefaultFont(Label label)
 		{
 			if (label.IsSet(Label.FontAttributesProperty))
+			{
 				return false;
+			}
 
 			if (label.IsSet(Label.FontFamilyProperty))
+			{
 				return false;
+			}
 
 			if (label.IsSet(Label.FontSizeProperty))
+			{
 				return false;
+			}
 
 			return true;
 		}

@@ -67,11 +67,15 @@ namespace Microsoft.Maui.Platform
 			{
 				editor.EditingChanged -= OnEditingChanged;
 				if (window != null)
+				{
 					editor.EditingChanged += OnEditingChanged;
+				}
 			}
 
 			if (window != null)
+			{
 				OnMovedToWindow?.Invoke(this, EventArgs.Empty);
+			}
 		}
 
 		[UnconditionalSuppressMessage("Memory", "MEM0003", Justification = "FIXME: https://github.com/dotnet/maui/pull/16383")]

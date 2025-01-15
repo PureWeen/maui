@@ -24,7 +24,9 @@ namespace Microsoft.Maui.Networking
 				{
 					var profile = NetworkInformation.GetInternetConnectionProfile();
 					if (profile == null)
+					{
 						return NetworkAccess.Unknown;
+					}
 
 					var level = profile.GetNetworkConnectivityLevel();
 					return level switch

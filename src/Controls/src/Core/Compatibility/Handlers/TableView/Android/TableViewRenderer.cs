@@ -67,7 +67,9 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			base.OnAttachedToWindow();
 
 			if (Control != null)
+			{
 				Control.NestedScrollingEnabled = (Parent.GetParentOfType<NestedScrollView>() != null);
+			}
 
 			// There might be a better way to go about doing this but from what I can tell 
 			// once you detach and then reattach a ListView the cells become unselectable 
@@ -111,9 +113,13 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 						int widthSpec;
 
 						if (double.IsInfinity(widthConstraint))
+						{
 							widthSpec = MeasureSpecMode.Unspecified.MakeMeasureSpec(0);
+						}
 						else
+						{
 							widthSpec = MeasureSpecMode.AtMost.MakeMeasureSpec((int)Context.ToPixels(widthConstraint));
+						}
 
 						listItem.Measure(widthSpec, MeasureSpecMode.Unspecified.MakeMeasureSpec(0));
 						totalHeight += Context.FromPixels(listItem.MeasuredHeight);

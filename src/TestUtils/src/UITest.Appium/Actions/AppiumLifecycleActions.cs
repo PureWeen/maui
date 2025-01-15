@@ -47,7 +47,9 @@ namespace UITest.Appium
 		CommandResponse LaunchApp(IDictionary<string, object> parameters)
 		{
 			if (_app?.Driver is null)
+			{
 				return CommandResponse.FailedEmptyResponse;
+			}
 
 			_app.Driver.LaunchApp();
 
@@ -57,7 +59,9 @@ namespace UITest.Appium
 		CommandResponse BackgroundApp(IDictionary<string, object> parameters)
 		{
 			if (_app?.Driver is null)
+			{
 				return CommandResponse.FailedEmptyResponse;
+			}
 
 			_app.Driver.BackgroundApp();
 
@@ -67,7 +71,9 @@ namespace UITest.Appium
 		CommandResponse ResetApp(IDictionary<string, object> parameters)
 		{
 			if (_app?.Driver is null)
+			{
 				return CommandResponse.FailedEmptyResponse;
+			}
 
 			_app.Driver.ResetApp();
 
@@ -77,7 +83,9 @@ namespace UITest.Appium
 		CommandResponse CloseApp(IDictionary<string, object> parameters)
 		{
 			if (_app?.Driver is null)
+			{
 				return CommandResponse.FailedEmptyResponse;
+			}
 
 			_app.Driver.CloseApp();
 
@@ -87,7 +95,9 @@ namespace UITest.Appium
 		CommandResponse Back(IDictionary<string, object> parameters)
 		{
 			if (_app?.Driver is null)
+			{
 				return CommandResponse.FailedEmptyResponse;
+			}
 
 			// Navigate backwards in the history, if possible.
 			_app.Driver.Navigate().Back();
