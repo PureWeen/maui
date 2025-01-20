@@ -52,7 +52,9 @@ namespace Maui.Controls.Sample.Issues
 			root.Items.Add(content);
 
 			if (!string.IsNullOrWhiteSpace(content.Title))
+			{
 				content.Route = content.Title;
+			}
 		}
 
 		public ContentPage AddBottomTab(ContentPage page, string title, string icon = null)
