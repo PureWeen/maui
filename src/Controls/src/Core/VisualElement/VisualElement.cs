@@ -98,12 +98,16 @@ namespace Microsoft.Maui.Controls
 			propertyChanging: (bindable, oldvalue, newvalue) =>
 			{
 				if (oldvalue != null)
+				{
 					(bindable as VisualElement)?.StopNotifyingClipChanges();
+				}
 			},
 			propertyChanged: (bindable, oldvalue, newvalue) =>
 			{
 				if (newvalue != null)
+				{
 					(bindable as VisualElement)?.NotifyClipChanges();
+				}
 			});
 
 		void NotifyClipChanges()
@@ -143,12 +147,16 @@ namespace Microsoft.Maui.Controls
 					s.PropertyChanged -= OnClipChanged;
 
 					if (s is GeometryGroup g)
+					{
 						g.InvalidateGeometryRequested -= OnClipChanged;
+					}
 				}
 
 				source.PropertyChanged += OnClipChanged;
 				if (source is GeometryGroup geometryGroup)
+				{
 					geometryGroup.InvalidateGeometryRequested += OnClipChanged;
+				}
 
 				base.Subscribe(source, handler);
 			}
@@ -160,7 +168,9 @@ namespace Microsoft.Maui.Controls
 					s.PropertyChanged -= OnClipChanged;
 
 					if (s is GeometryGroup g)
+					{
 						g.InvalidateGeometryRequested -= OnClipChanged;
+					}
 				}
 				base.Unsubscribe();
 			}
@@ -193,7 +203,9 @@ namespace Microsoft.Maui.Controls
 			set
 			{
 				if (value == _effectiveVisual)
+				{
 					return;
+				}
 
 				_effectiveVisual = value;
 				OnPropertyChanged(VisualProperty.PropertyName);
@@ -220,14 +232,21 @@ namespace Microsoft.Maui.Controls
 				var openBracket = transform.IndexOf("(", StringComparison.Ordinal);
 				var closeBracket = transform.IndexOf(")", StringComparison.Ordinal);
 				if (string.IsNullOrEmpty(transform) || openBracket < 0 || closeBracket < 0)
+				{
 					throw new FormatException("Format for transform is 'none | transform(value) [transform(value) ]*'");
+				}
+
 				var transformName = transform.Substring(0, openBracket);
 				var value = transform.Substring(openBracket + 1, closeBracket - openBracket - 1);
 				double translationX, translationY, scaleX, scaleY, rotateX, rotateY, rotate;
 				if (transformName.StartsWith("translateX", StringComparison.OrdinalIgnoreCase) && double.TryParse(value, out translationX))
+				{
 					bindable.SetValue(TranslationXProperty, translationX);
+				}
 				else if (transformName.StartsWith("translateY", StringComparison.OrdinalIgnoreCase) && double.TryParse(value, out translationY))
+				{
 					bindable.SetValue(TranslationYProperty, translationY);
+				}
 				else if (transformName.StartsWith("translate", StringComparison.OrdinalIgnoreCase))
 				{
 					var translate = value.Split(',');
@@ -238,9 +257,13 @@ namespace Microsoft.Maui.Controls
 					}
 				}
 				else if (transformName.StartsWith("scaleX", StringComparison.OrdinalIgnoreCase) && double.TryParse(value, out scaleX))
+				{
 					bindable.SetValue(ScaleXProperty, scaleX);
+				}
 				else if (transformName.StartsWith("scaleY", StringComparison.OrdinalIgnoreCase) && double.TryParse(value, out scaleY))
+				{
 					bindable.SetValue(ScaleYProperty, scaleY);
+				}
 				else if (transformName.StartsWith("scale", StringComparison.OrdinalIgnoreCase))
 				{
 					var scale = value.Split(',');
@@ -251,13 +274,21 @@ namespace Microsoft.Maui.Controls
 					}
 				}
 				else if (transformName.StartsWith("rotateX", StringComparison.OrdinalIgnoreCase) && double.TryParse(value, out rotateX))
+				{
 					bindable.SetValue(RotationXProperty, rotateX);
+				}
 				else if (transformName.StartsWith("rotateY", StringComparison.OrdinalIgnoreCase) && double.TryParse(value, out rotateY))
+				{
 					bindable.SetValue(RotationYProperty, rotateY);
+				}
 				else if (transformName.StartsWith("rotate", StringComparison.OrdinalIgnoreCase) && double.TryParse(value, out rotate))
+				{
 					bindable.SetValue(RotationProperty, rotate);
+				}
 				else
+				{
 					throw new FormatException("Invalid transform name");
+				}
 			}
 		}
 
@@ -280,12 +311,16 @@ namespace Microsoft.Maui.Controls
 			propertyChanging: (bindable, oldvalue, newvalue) =>
 			{
 				if (oldvalue != null)
+				{
 					(bindable as VisualElement)?.StopNotifyingBackgroundChanges();
+				}
 			},
 			propertyChanged: (bindable, oldvalue, newvalue) =>
 			{
 				if (newvalue != null)
+				{
 					(bindable as VisualElement)?.NotifyBackgroundChanges();
+				}
 			});
 
 		WeakBackgroundChangedProxy _backgroundProxy;
@@ -308,7 +343,9 @@ namespace Microsoft.Maui.Controls
 		{
 			var background = Background;
 			if (background is ImmutableBrush)
+			{
 				return;
+			}
 
 			if (background != null)
 			{
@@ -323,7 +360,9 @@ namespace Microsoft.Maui.Controls
 		{
 			var background = Background;
 			if (background is ImmutableBrush)
+			{
 				return;
+			}
 
 			if (background != null)
 			{
@@ -353,12 +392,16 @@ namespace Microsoft.Maui.Controls
 					s.PropertyChanged -= OnBackgroundChanged;
 
 					if (s is GradientBrush g)
+					{
 						g.InvalidateGradientBrushRequested -= OnBackgroundChanged;
+					}
 				}
 
 				source.PropertyChanged += OnBackgroundChanged;
 				if (source is GradientBrush gradientBrush)
+				{
 					gradientBrush.InvalidateGradientBrushRequested += OnBackgroundChanged;
+				}
 
 				base.Subscribe(source, handler);
 			}
@@ -370,7 +413,9 @@ namespace Microsoft.Maui.Controls
 					s.PropertyChanged -= OnBackgroundChanged;
 
 					if (s is GradientBrush g)
+					{
 						g.InvalidateGradientBrushRequested -= OnBackgroundChanged;
+					}
 				}
 				base.Unsubscribe();
 			}
@@ -452,14 +497,17 @@ namespace Microsoft.Maui.Controls
 		void SetEffectiveFlowDirection(EffectiveFlowDirection value, bool fireFlowDirectionPropertyChanged)
 		{
 			if (value == _effectiveFlowDirection)
+			{
 				return;
+			}
 
 			_effectiveFlowDirection = value;
 			InvalidateMeasureInternal(InvalidationTrigger.Undefined);
 
 			if (fireFlowDirectionPropertyChanged)
+			{
 				OnPropertyChanged(FlowDirectionProperty.PropertyName);
-
+			}
 		}
 
 		/// <inheritdoc/>
@@ -639,7 +687,9 @@ namespace Microsoft.Maui.Controls
 
 				var parent = Parent as VisualElement;
 				if (parent is not null && !parent.IsEnabled)
+				{
 					return false;
+				}
 
 				return _isEnabledExplicit;
 			}
@@ -671,7 +721,10 @@ namespace Microsoft.Maui.Controls
 				while (parent is not null)
 				{
 					if (parent.CascadeInputTransparent && parent.InputTransparent)
+					{
 						return true;
+					}
+
 					parent = parent.Parent as IInputTransparentContainerElement;
 				}
 
@@ -918,13 +971,17 @@ namespace Microsoft.Maui.Controls
 			set
 			{
 				if (_computedConstraint == value)
+				{
 					return;
+				}
 
 				LayoutConstraint oldConstraint = Constraint;
 				_computedConstraint = value;
 				LayoutConstraint newConstraint = Constraint;
 				if (oldConstraint != newConstraint)
+				{
 					OnConstraintChanged(oldConstraint, newConstraint);
+				}
 			}
 		}
 
@@ -947,14 +1004,18 @@ namespace Microsoft.Maui.Controls
 			get
 			{
 				if (_isInPlatformLayout)
+				{
 					return true;
+				}
 
 				Element parent = RealParent;
 				if (parent != null)
 				{
 					var visualElement = parent as VisualElement;
 					if (visualElement != null && visualElement.IsInPlatformLayout)
+					{
 						return true;
+					}
 				}
 
 				return false;
@@ -973,10 +1034,15 @@ namespace Microsoft.Maui.Controls
 			set
 			{
 				if (_isPlatformStateConsistent == value)
+				{
 					return;
+				}
+
 				_isPlatformStateConsistent = value;
 				if (value && IsPlatformEnabled)
+				{
 					InvalidateMeasureInternal(InvalidationTrigger.RendererReady);
+				}
 			}
 		}
 
@@ -994,11 +1060,15 @@ namespace Microsoft.Maui.Controls
 			set
 			{
 				if (value == _isPlatformEnabled)
+				{
 					return;
+				}
 
 				_isPlatformEnabled = value;
 				if (value && IsPlatformStateConsistent)
+				{
 					InvalidateMeasureInternal(InvalidationTrigger.RendererReady);
+				}
 
 				OnIsPlatformEnabledChanged();
 				PlatformEnabledChanged?.Invoke(this, EventArgs.Empty);
@@ -1011,7 +1081,9 @@ namespace Microsoft.Maui.Controls
 			set
 			{
 				if (_selfConstraint == value)
+				{
 					return;
+				}
 
 				LayoutConstraint oldConstraint = Constraint;
 				_selfConstraint = value;
@@ -1061,7 +1133,10 @@ namespace Microsoft.Maui.Controls
 			get
 			{
 				if (_resources != null)
+				{
 					return _resources;
+				}
+
 				_resources = new ResourceDictionary();
 				((IResourceDictionary)_resources).ValuesChanged += OnResourcesChanged;
 				return _resources;
@@ -1069,14 +1144,23 @@ namespace Microsoft.Maui.Controls
 			set
 			{
 				if (_resources == value)
+				{
 					return;
+				}
+
 				OnPropertyChanging();
 				if (_resources != null)
+				{
 					((IResourceDictionary)_resources).ValuesChanged -= OnResourcesChanged;
+				}
+
 				_resources = value;
 				OnResourcesChanged(value);
 				if (_resources != null)
+				{
 					((IResourceDictionary)_resources).ValuesChanged += OnResourcesChanged;
+				}
+
 				OnPropertyChanged();
 			}
 		}
@@ -1112,14 +1196,21 @@ namespace Microsoft.Maui.Controls
 		{
 			var constraintSize = new Size(widthConstraint, heightConstraint);
 			if (_measureCache.TryGetValue(constraintSize, out SizeRequest cachedResult))
+			{
 				return cachedResult;
+			}
 
 			double widthRequest = WidthRequest;
 			double heightRequest = HeightRequest;
 			if (widthRequest >= 0)
+			{
 				widthConstraint = Math.Min(widthConstraint, widthRequest);
+			}
+
 			if (heightRequest >= 0)
+			{
 				heightConstraint = Math.Min(heightConstraint, heightRequest);
+			}
 
 			SizeRequest result = OnMeasure(widthConstraint, heightConstraint);
 			bool hasMinimum = result.Minimum != result.Request;
@@ -1130,23 +1221,32 @@ namespace Microsoft.Maui.Controls
 			{
 				request.Height = heightRequest;
 				if (!hasMinimum)
+				{
 					minimum.Height = heightRequest;
+				}
 			}
 
 			if (widthRequest != -1 && !double.IsNaN(widthRequest))
 			{
 				request.Width = widthRequest;
 				if (!hasMinimum)
+				{
 					minimum.Width = widthRequest;
+				}
 			}
 
 			double minimumHeightRequest = MinimumHeightRequest;
 			double minimumWidthRequest = MinimumWidthRequest;
 
 			if (minimumHeightRequest != -1)
+			{
 				minimum.Height = minimumHeightRequest;
+			}
+
 			if (minimumWidthRequest != -1)
+			{
 				minimum.Width = minimumWidthRequest;
+			}
 
 			minimum.Height = Math.Min(request.Height, minimum.Height);
 			minimum.Width = Math.Min(request.Width, minimum.Width);
@@ -1154,7 +1254,9 @@ namespace Microsoft.Maui.Controls
 			var r = new SizeRequest(request, minimum);
 
 			if (r.Request.Width > 0 && r.Request.Height > 0)
+			{
 				_measureCache[constraintSize] = r;
+			}
 
 			return r;
 		}
@@ -1174,7 +1276,10 @@ namespace Microsoft.Maui.Controls
 			if (includeMargins)
 			{
 				if (this is View view)
+				{
 					margin = view.Margin;
+				}
+
 				widthConstraint = Math.Max(0, widthConstraint - margin.HorizontalThickness);
 				heightConstraint = Math.Max(0, heightConstraint - margin.VerticalThickness);
 			}
@@ -1208,7 +1313,9 @@ namespace Microsoft.Maui.Controls
 		public void Unfocus()
 		{
 			if (!IsFocused)
+			{
 				return;
+			}
 
 			Handler?.Invoke(nameof(IView.Unfocus));
 			FocusChangeRequested?.Invoke(this, new FocusRequestArgs());
@@ -1285,10 +1392,14 @@ namespace Microsoft.Maui.Controls
 		protected virtual SizeRequest OnMeasure(double widthConstraint, double heightConstraint)
 		{
 			if (!IsPlatformEnabled)
+			{
 				return new SizeRequest(new Size(-1, -1));
+			}
 
 			if (Handler != null)
+			{
 				return new SizeRequest(Handler.GetDesiredSize(widthConstraint, heightConstraint));
+			}
 
 			_platformSizeService ??= DependencyService.Get<IPlatformSizeService>();
 			return _platformSizeService.GetPlatformSize(this, widthConstraint, heightConstraint);
@@ -1323,7 +1434,9 @@ namespace Microsoft.Maui.Controls
 			for (var i = 0; i < LogicalChildrenInternal.Count; i++)
 			{
 				if (LogicalChildrenInternal[i] is View child)
+				{
 					ComputeConstraintForView(child);
+				}
 			}
 		}
 
@@ -1378,22 +1491,34 @@ namespace Microsoft.Maui.Controls
 		internal void InvalidateStateTriggers(bool attach)
 		{
 			if (!this.HasVisualStateGroups())
+			{
 				return;
+			}
 
 			var groups = (IList<VisualStateGroup>)GetValue(VisualStateManager.VisualStateGroupsProperty);
 
 			if (groups.Count == 0)
+			{
 				return;
+			}
 
 			foreach (var group in groups)
+			{
 				foreach (var state in group.States)
+				{
 					foreach (var stateTrigger in state.StateTriggers)
 					{
 						if (attach)
+						{
 							stateTrigger.SendAttached();
+						}
 						else
+						{
 							stateTrigger.SendDetached();
+						}
 					}
+				}
+			}
 		}
 
 		internal void MockBounds(Rect bounds)
@@ -1432,7 +1557,9 @@ namespace Microsoft.Maui.Controls
 		internal override void OnParentResourcesChanged(IEnumerable<KeyValuePair<string, object>> values)
 		{
 			if (values == null)
+			{
 				return;
+			}
 
 			if (!((IResourcesProvider)this).IsResourcesCreated || Resources.Count == 0)
 			{
@@ -1443,11 +1570,16 @@ namespace Microsoft.Maui.Controls
 			var innerKeys = new HashSet<string>(StringComparer.Ordinal);
 			var changedResources = new List<KeyValuePair<string, object>>();
 			foreach (KeyValuePair<string, object> c in Resources)
+			{
 				innerKeys.Add(c.Key);
+			}
+
 			foreach (KeyValuePair<string, object> value in values)
 			{
 				if (innerKeys.Add(value.Key))
+				{
 					changedResources.Add(value);
+				}
 				else if (value.Key.StartsWith(Style.StyleClassPrefix, StringComparison.Ordinal))
 				{
 					var mergedClassStyles = new List<Style>(Resources[value.Key] as List<Style>);
@@ -1456,7 +1588,9 @@ namespace Microsoft.Maui.Controls
 				}
 			}
 			if (changedResources.Count != 0)
+			{
 				OnResourcesChanged(changedResources);
+			}
 		}
 
 		internal void UnmockBounds() => _mockX = _mockY = _mockWidth = _mockHeight = -1;
@@ -1466,12 +1600,20 @@ namespace Microsoft.Maui.Controls
 			var groups = (IList<VisualStateGroup>)GetValue(VisualStateManager.VisualStateGroupsProperty);
 
 			if (groups.Count == 0)
+			{
 				return;
+			}
 
 			foreach (var group in groups)
+			{
 				foreach (var state in group.States)
+				{
 					foreach (var stateTrigger in state.StateTriggers)
+					{
 						SetInheritedBindingContext(stateTrigger, BindingContext);
+					}
+				}
+			}
 		}
 
 		void OnFocused() => Focused?.Invoke(this, new FocusEventArgs(this, true));
@@ -1488,11 +1630,15 @@ namespace Microsoft.Maui.Controls
 		private protected void SetPointerOver(bool value, bool callChangeVisualState = true)
 		{
 			if (_isPointerOver == value)
+			{
 				return;
+			}
 
 			_isPointerOver = value;
 			if (callChangeVisualState)
+			{
 				ChangeVisualState();
+			}
 		}
 
 		/// <summary>
@@ -1529,11 +1675,13 @@ namespace Microsoft.Maui.Controls
 			var newVisual = (IVisual)newValue;
 
 			if (newVisual.IsMatchParent())
+			{
 				self.EffectiveVisual = Microsoft.Maui.Controls.VisualMarker.Default;
+			}
 			else
+			{
 				self.EffectiveVisual = (IVisual)newValue;
-
-			(self as IPropertyPropagationController)?.PropagatePropertyChanged(VisualElement.VisualProperty.PropertyName);
+			} (self as IPropertyPropagationController)?.PropagatePropertyChanged(VisualElement.VisualProperty.PropertyName);
 		}
 
 		static void FlowDirectionChanging(BindableObject bindable, object oldValue, object newValue)
@@ -1541,14 +1689,20 @@ namespace Microsoft.Maui.Controls
 			var self = bindable as IFlowDirectionController;
 
 			if (self.EffectiveFlowDirection.IsExplicit() && oldValue == newValue)
+			{
 				return;
+			}
 
 			var newFlowDirection = ((FlowDirection)newValue).ToEffectiveFlowDirection(isExplicit: true);
 
 			if (self is VisualElement ve)
+			{
 				ve.SetEffectiveFlowDirection(newFlowDirection, false);
+			}
 			else
+			{
 				self.EffectiveFlowDirection = newFlowDirection;
+			}
 		}
 
 		static void FlowDirectionChanged(BindableObject bindable, object oldValue, object newValue)
@@ -1572,7 +1726,9 @@ namespace Microsoft.Maui.Controls
 			var element = (VisualElement)bindable;
 
 			if (element == null)
+			{
 				return;
+			}
 
 			element.ChangeVisualState();
 
@@ -1652,10 +1808,14 @@ namespace Microsoft.Maui.Controls
 		void IPropertyPropagationController.PropagatePropertyChanged(string propertyName)
 		{
 			if (propertyName == null || propertyName == IsEnabledProperty.PropertyName)
+			{
 				this.RefreshPropertyValue(IsEnabledProperty, _isEnabledExplicit);
+			}
 
 			if (propertyName == null || propertyName == InputTransparentProperty.PropertyName)
+			{
 				this.RefreshPropertyValue(InputTransparentProperty, _inputTransparentExplicit);
+			}
 
 			PropertyPropagationExtensions.PropagatePropertyChanged(propertyName, this, ((IVisualTreeElement)this).GetVisualChildren());
 		}
@@ -1717,7 +1877,9 @@ namespace Microsoft.Maui.Controls
 			set
 			{
 				if (_frame == value)
+				{
 					return;
+				}
 
 				UpdateBoundsComponents(value);
 			}
@@ -1746,9 +1908,14 @@ namespace Microsoft.Maui.Controls
 			get
 			{
 				if (!Brush.IsNullOrEmpty(Background))
+				{
 					return Background;
+				}
+
 				if (BackgroundColor.IsNotDefault())
+				{
 					return new SolidColorBrush(BackgroundColor);
+				}
 
 				return null;
 			}
@@ -1766,12 +1933,16 @@ namespace Microsoft.Maui.Controls
 				propertyChanging: (bindable, oldvalue, newvalue) =>
 				{
 					if (oldvalue != null)
+					{
 						(bindable as VisualElement)?.StopNotifyingShadowChanges();
+					}
 				},
 				propertyChanged: (bindable, oldvalue, newvalue) =>
 				{
 					if (newvalue != null)
+					{
 						(bindable as VisualElement)?.NotifyShadowChanges();
+					}
 				});
 
 		/// <summary>
@@ -2049,7 +2220,9 @@ namespace Microsoft.Maui.Controls
 			set
 			{
 				if (value != null && value is not IViewHandler)
+				{
 					throw new InvalidOperationException("Handler must be of type IViewHandler");
+				}
 
 				base.Handler = value;
 			}
@@ -2087,13 +2260,17 @@ namespace Microsoft.Maui.Controls
 		void PropagateBindingContextToBrush()
 		{
 			if (Background != null)
+			{
 				SetInheritedBindingContext(Background, BindingContext);
+			}
 		}
 
 		void PropagateBindingContextToShadow()
 		{
 			if (Shadow != null)
+			{
 				SetInheritedBindingContext(Shadow, BindingContext);
+			}
 		}
 
 		/// <summary>
@@ -2124,8 +2301,9 @@ namespace Microsoft.Maui.Controls
 				_loaded += value;
 				UpdatePlatformUnloadedLoadedWiring(Window);
 				if (_isLoadedFired)
+				{
 					_loaded?.Invoke(this, EventArgs.Empty);
-
+				}
 			}
 			remove
 			{
@@ -2169,7 +2347,9 @@ namespace Microsoft.Maui.Controls
 		void SendLoaded(bool updateWiring)
 		{
 			if (_isLoadedFired)
+			{
 				return;
+			}
 
 			_isLoadedFired = true;
 			_loaded?.Invoke(this, EventArgs.Empty);
@@ -2178,14 +2358,18 @@ namespace Microsoft.Maui.Controls
 			// unloaded is still correctly being watched for.
 
 			if (updateWiring)
+			{
 				UpdatePlatformUnloadedLoadedWiring(Window);
+			}
 		}
 
 		void SendUnloaded() => SendUnloaded(true);
 		void SendUnloaded(bool updateWiring)
 		{
 			if (!_isLoadedFired)
+			{
 				return;
+			}
 
 			_isLoadedFired = false;
 			_unloaded?.Invoke(this, EventArgs.Empty);
@@ -2193,13 +2377,17 @@ namespace Microsoft.Maui.Controls
 			// If the user is also watching loaded we need to verify
 			// loaded is still correctly being watched for.
 			if (updateWiring)
+			{
 				UpdatePlatformUnloadedLoadedWiring(Window);
+			}
 		}
 
 		static void OnWindowChanged(BindableObject bindable, object? oldValue, object? newValue)
 		{
 			if (bindable is not VisualElement visualElement)
+			{
 				return;
+			}
 
 			var newWindow = (Window?)newValue;
 			var oldWindow = (Window?)oldValue;
@@ -2224,12 +2412,16 @@ namespace Microsoft.Maui.Controls
 			// then it's not useful to wire anything up. We will just wait until
 			// This VE gets connected to the xplat Window before wiring up any events
 			if (!_watchingPlatformLoaded && newWindow is null)
+			{
 				return;
+			}
 
 			if (_unloaded is null && _loaded is null)
 			{
 				if (newWindow is not null)
+				{
 					newWindow.HandlerChanged -= OnWindowHandlerChanged;
+				}
 
 #if PLATFORM
 				_loadedUnloadedToken?.Dispose();
@@ -2255,7 +2447,9 @@ namespace Microsoft.Maui.Controls
 			if (!_watchingPlatformLoaded)
 			{
 				if (newWindow is not null)
+				{
 					newWindow.HandlerChanged += OnWindowHandlerChanged;
+				}
 
 				_watchingPlatformLoaded = true;
 			}
@@ -2292,15 +2486,29 @@ namespace Microsoft.Maui.Controls
 				if (!string.IsNullOrEmpty(strValue))
 				{
 					if (strValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
+					{
 						return true;
+					}
+
 					if (strValue.Equals("visible", StringComparison.OrdinalIgnoreCase))
+					{
 						return true;
+					}
+
 					if (strValue.Equals(bool.FalseString, StringComparison.OrdinalIgnoreCase))
+					{
 						return false;
+					}
+
 					if (strValue.Equals("hidden", StringComparison.OrdinalIgnoreCase))
+					{
 						return false;
+					}
+
 					if (strValue.Equals("collapse", StringComparison.OrdinalIgnoreCase))
+					{
 						return false;
+					}
 				}
 				throw new InvalidOperationException(string.Format("Cannot convert \"{0}\" into {1}.", strValue, typeof(bool)));
 			}
@@ -2308,7 +2516,10 @@ namespace Microsoft.Maui.Controls
 			public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
 			{
 				if (value is not bool visibility)
+				{
 					throw new NotSupportedException();
+				}
+
 				return visibility.ToString();
 			}
 		}

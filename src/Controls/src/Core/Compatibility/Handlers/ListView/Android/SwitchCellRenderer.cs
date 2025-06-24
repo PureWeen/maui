@@ -27,13 +27,17 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			}
 
 			if ((_view = convertView as SwitchCellView) == null)
+			{
 				_view = new SwitchCellView(context, item);
+			}
 
 			_view.Cell = cell;
 
 			var aSwitch = _view.AccessoryView as ASwitch;
 			if (aSwitch != null)
+			{
 				_defaultTrackDrawable = aSwitch.TrackDrawable;
+			}
 
 			UpdateText();
 			UpdateChecked();
@@ -48,20 +52,30 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 		protected override void OnCellPropertyChanged(object sender, PropertyChangedEventArgs args)
 		{
 			if (args.PropertyName == SwitchCell.TextProperty.PropertyName)
+			{
 				UpdateText();
+			}
 			else if (args.PropertyName == SwitchCell.OnProperty.PropertyName)
 			{
 				UpdateChecked();
 				UpdateOnColor(_view, (SwitchCell)sender);
 			}
 			else if (args.PropertyName == "RenderHeight")
+			{
 				UpdateHeight();
+			}
 			else if (args.PropertyName == Cell.IsEnabledProperty.PropertyName)
+			{
 				UpdateIsEnabled(_view, (SwitchCell)sender);
+			}
 			else if (args.PropertyName == VisualElement.FlowDirectionProperty.PropertyName)
+			{
 				UpdateFlowDirection();
+			}
 			else if (args.PropertyName == SwitchCell.OnColorProperty.PropertyName)
+			{
 				UpdateOnColor(_view, (SwitchCell)sender);
+			}
 		}
 
 		void UpdateChecked()
@@ -74,7 +88,9 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			cell.Enabled = switchCell.IsEnabled;
 			var aSwitch = cell.AccessoryView as ASwitch;
 			if (aSwitch != null)
+			{
 				aSwitch.Enabled = switchCell.IsEnabled;
+			}
 		}
 
 		void UpdateFlowDirection()

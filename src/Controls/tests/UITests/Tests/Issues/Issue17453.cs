@@ -25,7 +25,9 @@ namespace Microsoft.Maui.AppiumTests.Issues
 			string? rtlEntryText = App.FindElement("RtlEntry").GetText();
 
 			if (String.IsNullOrWhiteSpace(rtlEntryText))
+			{
 				App.EnterText("RtlEntry", "Simple Text");
+			}
 
 			var rtlEntryRect = App.FindElement("RtlEntry").GetRect();
 			App.EnterText("RtlEntry", "Simple Text");
@@ -57,7 +59,9 @@ namespace Microsoft.Maui.AppiumTests.Issues
 			string? rtlEntryText = App.FindElement("RtlEntry").GetText();
 
 			if (String.IsNullOrWhiteSpace(rtlEntryText))
+			{
 				App.EnterText("RtlEntry", "Simple Text");
+			}
 
 			var rtlEntryRect = App.FindElement("RtlEntry").GetRect();
 

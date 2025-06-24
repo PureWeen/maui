@@ -126,7 +126,9 @@ namespace Microsoft.Maui
 			var platformView = viewHandler.ToPlatform();
 
 			if (platformView == null)
+			{
 				return;
+			}
 
 			var centerX = rect.Center.X;
 

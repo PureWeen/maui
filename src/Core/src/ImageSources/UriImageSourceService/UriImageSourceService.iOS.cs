@@ -20,7 +20,9 @@ namespace Microsoft.Maui
 		public async Task<IImageSourceServiceResult<UIImage>?> GetImageAsync(IUriImageSource imageSource, float scale = 1, CancellationToken cancellationToken = default)
 		{
 			if (imageSource.IsEmpty)
+			{
 				return null;
+			}
 
 			try
 			{
@@ -37,27 +39,37 @@ namespace Microsoft.Maui
 				{
 					// TODO: use a real caching library with the URI
 					if (imageSource is not IStreamImageSource streamImageSource)
+					{
 						return null;
+					}
 
 					using var stream = await streamImageSource.GetStreamAsync(cancellationToken).ConfigureAwait(false);
 
 					if (stream == null)
+					{
 						throw new InvalidOperationException($"Unable to load image stream from URI '{imageSource.Uri}'.");
+					}
 
 					imageData = NSData.FromStream(stream);
 
 					if (imageData == null)
+					{
 						throw new InvalidOperationException("Unable to load image stream data.");
+					}
 
 					if (imageSource.CachingEnabled)
+					{
 						CacheImage(imageData, pathToImageCache);
+					}
 				}
 
 				// We do not need to pass the scale in here as the image file is not scaled to the screen scale.
 				var image = UIImage.LoadFromData(imageData);
 
 				if (image == null)
+				{
 					throw new InvalidOperationException($"Unable to decode image from URI '{imageSource.Uri}'.");
+				}
 
 				var result = new ImageSourceServiceResult(image, () => image.Dispose());
 
@@ -76,7 +88,9 @@ namespace Microsoft.Maui
 			var directory = Path.GetDirectoryName(path);
 
 			if (string.IsNullOrEmpty(directory))
+			{
 				throw new InvalidOperationException($"Unable to get directory path name '{path}'.");
+			}
 
 			Directory.CreateDirectory(directory);
 
@@ -85,7 +99,9 @@ namespace Microsoft.Maui
 #pragma warning restore CA1416, CA1422
 
 			if (result == false)
+			{
 				throw new InvalidOperationException($"Unable to cache image at '{path}'.");
+			}
 		}
 
 		public bool IsImageCached(string path)
@@ -98,7 +114,9 @@ namespace Microsoft.Maui
 			var imageData = NSData.FromFile(path);
 
 			if (imageData == null)
+			{
 				throw new InvalidOperationException($"Unable to load image stream data from '{path}'.");
+			}
 
 			return imageData;
 		}

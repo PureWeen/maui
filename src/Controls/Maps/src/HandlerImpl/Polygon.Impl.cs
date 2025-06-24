@@ -36,7 +36,9 @@ namespace Microsoft.Maui.Controls.Maps
 		public void Clear()
 		{
 			for (int i = Geopath.Count - 1; i >= 0; i--)
+			{
 				RemoveAt(i);
+			}
 		}
 
 		public bool Contains(Location item)

@@ -35,14 +35,18 @@ namespace Microsoft.Maui.Controls.Platform
 			TextTransform defaultTextTransform = TextTransform.Default)
 		{
 			if (formattedString == null)
+			{
 				return new NSAttributedString(string.Empty);
+			}
 
 			var attributed = new NSMutableAttributedString();
 			for (int i = 0; i < formattedString.Spans.Count; i++)
 			{
 				Span span = formattedString.Spans[i];
 				if (span.Text == null)
+				{
 					continue;
+				}
 
 				attributed.Append(span.ToNSAttributedString(fontManager, defaultLineHeight, defaultHorizontalAlignment, defaultFont, defaultColor, defaultTextTransform));
 			}
@@ -65,7 +69,9 @@ namespace Microsoft.Maui.Controls.Platform
 
 			var text = TextTransformUtilites.GetTransformedText(span.Text, transform);
 			if (text is null)
+			{
 				return new NSAttributedString(string.Empty);
+			}
 
 			var style = new NSMutableParagraphStyle();
 			var lineHeight = span.LineHeight >= 0
@@ -87,7 +93,9 @@ namespace Microsoft.Maui.Controls.Platform
 
 			var font = span.ToFont(defaultFontSize);
 			if (font.IsDefault && defaultFont.HasValue)
+			{
 				font = defaultFont.Value;
+			}
 
 			var hasUnderline = false;
 			var hasStrikethrough = false;

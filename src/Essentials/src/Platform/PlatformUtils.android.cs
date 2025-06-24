@@ -21,7 +21,9 @@ namespace Microsoft.Maui.ApplicationModel
 		internal static int NextRequestCode()
 		{
 			if (++requestCode >= 12999)
+			{
 				requestCode = requestCodeStart;
+			}
 
 			return requestCode;
 		}
@@ -46,7 +48,9 @@ namespace Microsoft.Maui.ApplicationModel
 				foreach (var feature in packageManager.GetSystemAvailableFeatures())
 				{
 					if (feature?.Name?.Equals(systemFeature, StringComparison.OrdinalIgnoreCase) ?? false)
+					{
 						return true;
+					}
 				}
 			}
 			return false;
@@ -55,7 +59,9 @@ namespace Microsoft.Maui.ApplicationModel
 		internal static bool IsIntentSupported(Intent intent)
 		{
 			if (Application.Context is not Context ctx || ctx.PackageManager is not PackageManager pm)
+			{
 				return false;
+			}
 
 			return intent.ResolveActivity(pm) is not null;
 		}
@@ -63,7 +69,9 @@ namespace Microsoft.Maui.ApplicationModel
 		internal static bool IsIntentSupported(Intent intent, string expectedPackageName)
 		{
 			if (Application.Context is not Context ctx || ctx.PackageManager is not PackageManager pm)
+			{
 				return false;
+			}
 
 			return intent.ResolveActivity(pm) is ComponentName c && c.PackageName == expectedPackageName;
 		}

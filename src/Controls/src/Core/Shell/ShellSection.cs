@@ -54,13 +54,33 @@ namespace Microsoft.Maui.Controls
 				if (Navigation.ModalStack.Count > 0)
 				{
 					if (Navigation.ModalStack[Navigation.ModalStack.Count - 1] is NavigationPage np)
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
 						return np.Navigation.NavigationStack[np.Navigation.NavigationStack.Count - 1];
+=======
+					{
+						return np.Navigation.NavigationStack[np.Navigation.NavigationStack.Count - 1];
+>>>>>>> After
+					{
+						return np.Navigation.NavigationStack[np.Navigation.NavigationStack.Count - 1];
+					}
+					}
 
 					return Navigation.ModalStack[Navigation.ModalStack.Count - 1];
 				}
 
 				if (_navStack.Count > 1)
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
 					return _navStack[_navStack.Count - 1];
+=======
+				{
+					return _navStack[_navStack.Count - 1];
+>>>>>>> After
+				{
+					return _navStack[_navStack.Count - 1];
+				}
+				}
 
 				return ((IShellContentController)CurrentItem)?.Page;
 			}
@@ -69,7 +89,9 @@ namespace Microsoft.Maui.Controls
 		void IShellSectionController.AddContentInsetObserver(IShellContentInsetObserver observer)
 		{
 			if (!_observers.Contains(observer))
+			{
 				_observers.Add(observer);
+			}
 
 			observer.OnInsetChanged(_lastInset, _lastTabThickness);
 		}
@@ -110,7 +132,9 @@ namespace Microsoft.Maui.Controls
 		async void IShellSectionController.SendPopping(Task poppingCompleted)
 		{
 			if (_navStack.Count <= 1)
+			{
 				throw new Exception("Nav Stack consistency error");
+			}
 
 			var page = _navStack[_navStack.Count - 1];
 
@@ -127,21 +151,28 @@ namespace Microsoft.Maui.Controls
 		async void IShellSectionController.SendPoppingToRoot(Task finishedPopping)
 		{
 			if (_navStack.Count <= 1)
+			{
 				throw new Exception("Nav Stack consistency error");
+			}
 
 			var oldStack = _navStack;
 			_navStack = new List<Page> { null };
 
 			for (int i = 1; i < oldStack.Count; i++)
+			{
 				oldStack[i].SendDisappearing();
+			}
+
+			UpdateDisplayedPage();
+			}
 
 			UpdateDisplayedPage();
 			await finishedPopping;
 
 			for (int i = 1; i < oldStack.Count; i++)
+			{
 				RemovePage(oldStack[i]);
-
-			(Parent?.Parent as IShellController)?.UpdateCurrentState(ShellNavigationSource.PopToRoot);
+			} (Parent?.Parent as IShellController)?.UpdateCurrentState(ShellNavigationSource.PopToRoot);
 		}
 
 		[Obsolete]
@@ -150,7 +181,9 @@ namespace Microsoft.Maui.Controls
 		void IShellSectionController.SendPopped()
 		{
 			if (_navStack.Count <= 1)
+			{
 				throw new Exception("Nav Stack consistency error");
+			}
 
 			var last = _navStack[_navStack.Count - 1];
 			_navStack.Remove(last);
@@ -166,7 +199,14 @@ namespace Microsoft.Maui.Controls
 		void IShellSectionController.SendPopping(Page page)
 		{
 			if (_navStack.Count <= 1)
+			{
 				throw new Exception("Nav Stack consistency error");
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+=======
+			}
+>>>>>>> After
+			}
 
 			_navStack.Remove(page);
 			SendAppearanceChanged();
@@ -177,7 +217,9 @@ namespace Microsoft.Maui.Controls
 		void IShellSectionController.SendPopped(Page page)
 		{
 			if (_navStack.Contains(page))
+			{
 				_navStack.Remove(page);
+			}
 
 			RemovePage(page);
 		}
@@ -258,12 +300,16 @@ namespace Microsoft.Maui.Controls
 			set
 			{
 				if (_displayedPage == value)
+				{
 					return;
+				}
 
 				_displayedPage = value;
 
 				foreach (var item in _displayedPageObservers)
+				{
 					item.Callback(_displayedPage);
+				}
 			}
 		}
 
@@ -278,7 +324,9 @@ namespace Microsoft.Maui.Controls
 				var current = (ShellSection)shellContent.Parent;
 
 				if (current.Items.Contains(shellContent))
+				{
 					current.CurrentItem = shellContent;
+				}
 
 				return current;
 			}
@@ -386,7 +434,9 @@ namespace Microsoft.Maui.Controls
 
 					// if the navStack count is one that means there is nothing pushed
 					if (navStack.Count == 1)
+					{
 						break;
+					}
 
 					Page navPage = navStack.Count > i + 1 ? navStack[i + 1] : null;
 
@@ -405,7 +455,9 @@ namespace Microsoft.Maui.Controls
 							// If we're not on the last loop of the stack then continue
 							// otherwise pop the rest of the stack
 							if (!isLast)
+							{
 								continue;
+							}
 						}
 
 						// This is the page that we will eventually get to once we've finished
@@ -498,9 +550,13 @@ namespace Microsoft.Maui.Controls
 			if (globalRoutes == null || globalRoutes.Count == 0)
 			{
 				if (_navStack.Count == 2)
+				{
 					await OnPopAsync(animate ?? false);
+				}
 				else
+				{
 					await OnPopToRootAsync(animate ?? false);
+				}
 
 				return;
 			}
@@ -518,7 +574,9 @@ namespace Microsoft.Maui.Controls
 			int whereToStartNavigation = 0;
 
 			if (request.StackRequest == ShellNavigationRequest.WhatToDoWithTheStack.ReplaceIt)
+			{
 				whereToStartNavigation = currentNavStack.Count - 1;
+			}
 
 			for (int i = whereToStartNavigation; i < globalRoutes.Count; i++)
 			{
@@ -567,9 +625,13 @@ namespace Microsoft.Maui.Controls
 				else
 				{
 					if (activeModalNavigationPage != null)
+					{
 						await activeModalNavigationPage.Navigation.PushAsync(modalPage, animate ?? IsNavigationAnimated(modalPage));
+					}
 					else
+					{
 						await PushModalAsync(modalPage, isAnimated);
+					}
 				}
 			}
 
@@ -579,7 +641,17 @@ namespace Microsoft.Maui.Controls
 		Task PopModalAsync(bool isAnimated)
 		{
 			if (Navigation is NavigationImpl shellSectionProxy)
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
 				return shellSectionProxy.PopModalInnerAsync(isAnimated);
+=======
+			{
+				return shellSectionProxy.PopModalInnerAsync(isAnimated);
+>>>>>>> After
+			{
+				return shellSectionProxy.PopModalInnerAsync(isAnimated);
+			}
+			}
 
 			return Navigation.PopModalAsync(isAnimated);
 		}
@@ -587,7 +659,17 @@ namespace Microsoft.Maui.Controls
 		Task PushModalAsync(Page page, bool isAnimated)
 		{
 			if (Navigation is NavigationImpl shellSectionProxy)
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
 				return shellSectionProxy.PushModalInnerAsync(page, isAnimated);
+=======
+			{
+				return shellSectionProxy.PushModalInnerAsync(page, isAnimated);
+>>>>>>> After
+			{
+				return shellSectionProxy.PushModalInnerAsync(page, isAnimated);
+			}
+			}
 
 			return Navigation.PushModalAsync(page, isAnimated);
 		}
@@ -604,7 +686,9 @@ namespace Microsoft.Maui.Controls
 					await OnPushAsync(pages[i], isAnimated);
 				}
 				else
+				{
 					Navigation.InsertPageBefore(pages[i], pages[i + 1]);
+				}
 			}
 		}
 
@@ -623,7 +707,9 @@ namespace Microsoft.Maui.Controls
 			if (Parent?.Parent is Shell shell)
 			{
 				if (IsVisibleSection)
+				{
 					shell.SendStructureChanged();
+				}
 
 				shell.SendFlyoutItemsChanged();
 			}
@@ -658,7 +744,9 @@ namespace Microsoft.Maui.Controls
 			base.OnParentSet();
 
 			if (this.IsVisibleSection)
+			{
 				SendAppearanceChanged();
+			}
 		}
 
 		protected override void OnChildAdded(Element child)
@@ -676,7 +764,8 @@ namespace Microsoft.Maui.Controls
 				{
 					sc.Page.PlatformEnabledChanged -= WaitForRendererToGetRemoved;
 					base.OnChildRemoved(child, oldLogicalIndex);
-				};
+				}
+				;
 			}
 			else
 			{
@@ -689,10 +778,14 @@ namespace Microsoft.Maui.Controls
 		void OnVisibleChildAdded(Element child)
 		{
 			if (CurrentItem == null && ((IShellSectionController)this).GetItems().Contains(child))
+			{
 				SetValueFromRenderer(CurrentItemProperty, child);
+			}
 
 			if (CurrentItem != null)
+			{
 				UpdateDisplayedPage();
+			}
 		}
 
 		void OnVisibleChildRemoved(Element child)
@@ -722,7 +815,9 @@ namespace Microsoft.Maui.Controls
 		{
 			var index = _navStack.IndexOf(before);
 			if (index == -1)
+			{
 				throw new ArgumentException("Page not found in nav stack");
+			}
 
 			var stack = _navStack.ToList();
 			stack.Insert(index, page);
@@ -737,7 +832,17 @@ namespace Microsoft.Maui.Controls
 			);
 
 			if (!allow)
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
 				return;
+=======
+			{
+				return;
+			}
+>>>>>>> After
+			{
+				return;
+			}
 
 			_navStack.Insert(index, page);
 			AddPage(page);
@@ -753,11 +858,154 @@ namespace Microsoft.Maui.Controls
 		protected async virtual Task<Page> OnPopAsync(bool animated)
 		{
 			if (_navStack.Count <= 1)
+			{
 				throw new InvalidOperationException("Can't pop last page off stack");
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+=======
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				return null;
+=======
+			{
+				return null;
+			}
+>>>>>>> After
+			}
 
 			List<Page> stack = _navStack.ToList();
 			stack.Remove(stack.Last());
-			var allow = ((IShellController)Shell).ProposeNavigation(
+			var allow = 
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				await args.Task;
+=======
+			{
+				await args.Task;
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				await _handlerBasedNavigationCompletionSource.Task;
+=======
+			{
+				await _handlerBasedNavigationCompletionSource.Task;
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				return;
+=======
+			{
+				return;
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				return;
+=======
+			{
+				return;
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				await args.Task;
+=======
+			{
+				await args.Task;
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				await _handlerBasedNavigationCompletionSource.Task;
+=======
+			{
+				await _handlerBasedNavigationCompletionSource.Task;
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				return Task.FromResult(true);
+=======
+			{
+				return Task.FromResult(true);
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+						break;
+=======
+					{
+						break;
+					}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				return;
+=======
+			{
+				return;
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				return;
+
+			if (currentPage)
+				PresentedPageDisappearing();
+=======
+			{
+				return;
+			}
+
+			if (currentPage)
+			{
+				PresentedPageDisappearing();
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				PresentedPageAppearing();
+=======
+			{
+				PresentedPageAppearing();
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+					CurrentItem?.SendAppearing();
+=======
+				{
+					CurrentItem?.SendAppearing();
+				}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				oldShellItem.SendDisappearing();
+=======
+			{
+				oldShellItem.SendDisappearing();
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				return;
+=======
+			{
+				return;
+			}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				((IShellController)shellSection?.Parent?.Parent)?.AppearanceChanged(shellSection, false);
+=======
+			{
+				((IShellController)shellSection?.Parent?.Parent)?.AppearanceChanged(shellSection, false);
+			}
+>>>>>>> After
+((IShellController)Shell).ProposeNavigation(
 				ShellNavigationSource.Pop,
 				Parent as ShellItem,
 				this,
@@ -766,8 +1014,64 @@ namespace Microsoft.Maui.Controls
 				true
 			);
 
-			if (!allow)
+		
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+					return null;
+=======
+				{
+					return null;
+				}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+					return _owner.OnPushAsync(page, animated);
+=======
+				{
+					return _owner.OnPushAsync(page, animated);
+				}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+					Shell.SetPresentationMode(modal, PresentationMode.ModalAnimated);
+				else
+					Shell.SetPresentationMode(modal, PresentationMode.ModalNotAnimated);
+=======
+				{
+					Shell.SetPresentationMode(modal, PresentationMode.ModalAnimated);
+				}
+				else
+				{
+					Shell.SetPresentationMode(modal, PresentationMode.ModalNotAnimated);
+				}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+					return await base.OnPopModal(animated);
+=======
+				{
+					return await base.OnPopModal(animated);
+				}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+					throw new ArgumentException("Page not found in nav stack");
+=======
+				{
+					throw new ArgumentException("Page not found in nav stack");
+				}
+>>>>>>> After
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0)', Before:
+				throw new InvalidOperationException("Pending Navigations still processing");
+=======
+			{
+				throw new InvalidOperationException("Pending Navigations still processing");
+			}
+>>>>>>> After
+	if (!allow)
+			{
 				return null;
+			}
 
 			var page = _navStack[_navStack.Count - 1];
 			var args = new NavigationRequestedEventArgs(page, animated)
@@ -781,10 +1085,14 @@ namespace Microsoft.Maui.Controls
 
 			InvokeNavigationRequest(args);
 			if (args.Task != null)
+			{
 				await args.Task;
+			}
 
 			if (_handlerBasedNavigationCompletionSource?.Task != null)
+			{
 				await _handlerBasedNavigationCompletionSource.Task;
+			}
 
 			RemovePage(page);
 
@@ -794,7 +1102,9 @@ namespace Microsoft.Maui.Controls
 		protected virtual async Task OnPopToRootAsync(bool animated)
 		{
 			if (_navStack.Count <= 1)
+			{
 				return;
+			}
 
 			var allow = ((IShellController)Shell).ProposeNavigation(
 				ShellNavigationSource.PopToRoot,
@@ -806,7 +1116,9 @@ namespace Microsoft.Maui.Controls
 			);
 
 			if (!allow)
+			{
 				return;
+			}
 
 			var page = _navStack[_navStack.Count - 1];
 			var args = new NavigationRequestedEventArgs(page, animated)
@@ -819,10 +1131,14 @@ namespace Microsoft.Maui.Controls
 			_navStack = new List<Page> { null };
 
 			if (args.Task != null)
+			{
 				await args.Task;
+			}
 
 			if (_handlerBasedNavigationCompletionSource?.Task != null)
+			{
 				await _handlerBasedNavigationCompletionSource.Task;
+			}
 
 			for (int i = 1; i < oldStack.Count; i++)
 			{
@@ -847,7 +1163,9 @@ namespace Microsoft.Maui.Controls
 			);
 
 			if (!allow)
+			{
 				return Task.FromResult(true);
+			}
 
 			var args = new NavigationRequestedEventArgs(page, animated)
 			{
@@ -875,7 +1193,9 @@ namespace Microsoft.Maui.Controls
 				{
 					var pageToPop = Navigation.ModalStack[Navigation.ModalStack.Count - 1];
 					if (pageToPop == page)
+					{
 						break;
+					}
 
 					// indicate that we are done popping down the stack to the modal page requested
 					// This is mainly used by life cycle events so they don't fire onappearing
@@ -901,7 +1221,9 @@ namespace Microsoft.Maui.Controls
 		protected virtual void OnRemovePage(Page page)
 		{
 			if (!_navStack.Contains(page))
+			{
 				return;
+			}
 
 			bool currentPage = (((IShellSectionController)this).PresentedPage) == page;
 			var stack = _navStack.ToList();
@@ -917,15 +1239,21 @@ namespace Microsoft.Maui.Controls
 				);
 
 			if (!allow)
+			{
 				return;
+			}
 
 			if (currentPage)
+			{
 				PresentedPageDisappearing();
+			}
 
 			_navStack.Remove(page);
 
 			if (currentPage)
+			{
 				PresentedPageAppearing();
+			}
 
 			RemovePage(page);
 			var args = new NavigationRequestedEventArgs(page, false)
@@ -950,7 +1278,9 @@ namespace Microsoft.Maui.Controls
 			if (IsVisibleSection && this is IShellSectionController sectionController)
 			{
 				if (_navStack.Count == 1)
+				{
 					CurrentItem?.SendAppearing();
+				}
 
 				var presentedPage = sectionController.PresentedPage;
 				if (presentedPage != null)
@@ -979,10 +1309,14 @@ namespace Microsoft.Maui.Controls
 			var shellSection = (ShellSection)bindable;
 
 			if (oldValue is ShellContent oldShellItem)
+			{
 				oldShellItem.SendDisappearing();
+			}
 
 			if (newValue == null)
+			{
 				return;
+			}
 
 			shellSection.PresentedPageAppearing();
 
@@ -994,7 +1328,9 @@ namespace Microsoft.Maui.Controls
 			shellSection.SendStructureChanged();
 
 			if (shellSection.IsVisibleSection)
+			{
 				((IShellController)shellSection?.Parent?.Parent)?.AppearanceChanged(shellSection, false);
+			}
 
 			shellSection.UpdateDisplayedPage();
 		}
@@ -1059,7 +1395,9 @@ namespace Microsoft.Maui.Controls
 
 				// This means the page wasn't popped and navigation was cancelled
 				if ((_owner as IShellSectionController).PresentedPage == returnedPage)
+				{
 					return null;
+				}
 
 				return returnedPage;
 			}
@@ -1093,7 +1431,9 @@ namespace Microsoft.Maui.Controls
 			protected override Task OnPushAsync(Page page, bool animated)
 			{
 				if (!_owner.IsVisibleSection)
+				{
 					return _owner.OnPushAsync(page, animated);
+				}
 
 				var navigationParameters = new ShellNavigationParameters()
 				{
@@ -1128,9 +1468,13 @@ namespace Microsoft.Maui.Controls
 				}
 
 				if (animated)
+				{
 					Shell.SetPresentationMode(modal, PresentationMode.ModalAnimated);
+				}
 				else
+				{
 					Shell.SetPresentationMode(modal, PresentationMode.ModalNotAnimated);
+				}
 
 				var navigationParameters = new ShellNavigationParameters()
 				{
@@ -1144,7 +1488,9 @@ namespace Microsoft.Maui.Controls
 			protected async override Task<Page> OnPopModal(bool animated)
 			{
 				if (_owner.Shell.NavigationManager.AccumulateNavigatedEvents)
+				{
 					return await base.OnPopModal(animated);
+				}
 
 				var page = ModalStack[ModalStack.Count - 1];
 				await _owner.Shell.GoToAsync("..", animated);
@@ -1187,7 +1533,9 @@ namespace Microsoft.Maui.Controls
 				var stack = _owner.Stack.ToList();
 				var index = stack.IndexOf(before);
 				if (index == -1)
+				{
 					throw new ArgumentException("Page not found in nav stack");
+				}
 
 				stack.Insert(index, page);
 				var navigationState = GetUpdatedStatus(stack);
@@ -1224,7 +1572,9 @@ namespace Microsoft.Maui.Controls
 		void IStackNavigation.RequestNavigation(NavigationRequest eventArgs)
 		{
 			if (_handlerBasedNavigationCompletionSource != null)
+			{
 				throw new InvalidOperationException("Pending Navigations still processing");
+			}
 
 			_handlerBasedNavigationCompletionSource = new TaskCompletionSource<object>();
 			Handler.Invoke(nameof(IStackNavigation.RequestNavigation), eventArgs);

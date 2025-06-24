@@ -392,10 +392,14 @@ namespace Microsoft.Maui.DeviceTests
 			await OnNavigatedToAsync(shell.CurrentPage);
 
 			if (shellItem != shell.CurrentItem)
+			{
 				throw new NotImplementedException();
+			}
 
 			if (shellSection != shell.CurrentItem.CurrentItem)
+			{
 				throw new NotImplementedException();
+			}
 
 			var pagerParent = (shell.CurrentPage.Handler as IPlatformViewHandler)
 				.PlatformView.FindParent(x => x.NextResponder is UITabBarController);

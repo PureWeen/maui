@@ -17,7 +17,9 @@ namespace Microsoft.Maui.Storage
 				{
 					ISharedPreferences sharedPreferences = GetEncryptedSharedPreferences();
 					if (sharedPreferences != null)
+					{
 						return sharedPreferences.GetString(key, null);
+					}
 
 					// TODO: Use Logger here?
 					System.Diagnostics.Debug.WriteLine(
@@ -50,9 +52,13 @@ namespace Microsoft.Maui.Storage
 			{
 				using ISharedPreferencesEditor editor = GetEncryptedSharedPreferences()?.Edit();
 				if (data is null)
+				{
 					editor?.Remove(key);
+				}
 				else
+				{
 					editor?.PutString(key, data);
+				}
 
 				editor?.Apply();
 			});

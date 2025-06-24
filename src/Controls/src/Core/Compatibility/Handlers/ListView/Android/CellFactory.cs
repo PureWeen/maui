@@ -27,9 +27,13 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			AView result = renderer.GetCell(item, convertView, parent, context);
 
 			if (view is TableView)
+			{
 				UpdateMinimumHeightFromParent(context, result, (TableView)view);
+			}
 			else if (view is ListView)
+			{
 				UpdateMinimumHeightFromParent(context, result, (ListView)view);
+			}
 
 			return result;
 		}
@@ -37,13 +41,17 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 		static void UpdateMinimumHeightFromParent(Context context, AView view, TableView table)
 		{
 			if (!table.HasUnevenRows && table.RowHeight > 0)
+			{
 				view.SetMinimumHeight((int)context.ToPixels(table.RowHeight));
+			}
 		}
 
 		static void UpdateMinimumHeightFromParent(Context context, AView view, ListView listView)
 		{
 			if (!listView.HasUnevenRows && listView.RowHeight > 0)
+			{
 				view.SetMinimumHeight((int)context.ToPixels(listView.RowHeight));
+			}
 		}
 	}
 }

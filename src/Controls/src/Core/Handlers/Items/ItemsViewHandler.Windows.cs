@@ -108,7 +108,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		void UpdateItemsUpdatingScrollMode()
 		{
 			if (PlatformView is null || PlatformView.Items is null)
+			{
 				return;
+			}
 
 			if (VirtualView.ItemsUpdatingScrollMode == ItemsUpdatingScrollMode.KeepScrollOffset)
 			{
@@ -126,15 +128,45 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		void OnItemsVectorChanged(global::Windows.Foundation.Collections.IObservableVector<object> sender, global::Windows.Foundation.Collections.IVectorChangedEventArgs @event)
 		{
 			if (VirtualView is null)
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)', Before:
 				return;
+=======
+			{
+				return;
+			}
+>>>>>>> After
+			
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)', Before:
+				return;
+=======
+			{
+				return;
+			}
+>>>>>>> After
+{
+				return;
+			}
 
 			if (sender is not ItemCollection items)
+			{
 				return;
+			}
 
 			var itemsCount = items.Count;
 
 			if (itemsCount == 0)
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)', Before:
 				return;
+=======
+			{
+				return;
+			}
+>>>>>>> After
+			{
+				return;
+			}
 
 			if (VirtualView.ItemsUpdatingScrollMode == ItemsUpdatingScrollMode.KeepItemsInView)
 			{
@@ -202,10 +234,30 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 				if (_formsEmptyView != null)
 				{
 					if (_emptyViewDisplayed)
+
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)', Before:
 						ItemsView.RemoveLogicalChild(_formsEmptyView);
+=======
+					{
+						ItemsView.RemoveLogicalChild(_formsEmptyView);
+					}
+>>>>>>> After
+					
+<<<<<<< TODO: Unmerged change from project 'Controls.Core(net8.0-windows10.0.20348)', Before:
+						ItemsView.AddLogicalChild(_formsEmptyView);
+=======
+					{
+						ItemsView.AddLogicalChild(_formsEmptyView);
+					}
+>>>>>>> After
+{
+						ItemsView.RemoveLogicalChild(_formsEmptyView);
+					}
 
 					if (ItemsView.EmptyViewTemplate == null)
+					{
 						ItemsView.AddLogicalChild(_formsEmptyView);
+					}
 				}
 
 				if (_emptyView != null && ListViewBase is IEmptyView emptyView)
@@ -213,7 +265,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 					emptyView.EmptyViewVisibility = WVisibility.Visible;
 
 					if (PlatformView.ActualWidth >= 0 && PlatformView.ActualHeight >= 0)
+					{
 						_formsEmptyView?.Layout(new Rect(0, 0, PlatformView.ActualWidth, PlatformView.ActualHeight));
+					}
 				}
 
 				_emptyViewDisplayed = true;
@@ -223,7 +277,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 				if (_emptyViewDisplayed)
 				{
 					if (_emptyView != null && ListViewBase is IEmptyView emptyView)
+					{
 						emptyView.EmptyViewVisibility = WVisibility.Collapsed;
+					}
 
 					ItemsView.RemoveLogicalChild(_formsEmptyView);
 				}
@@ -375,7 +431,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			{
 				// If the value is changing to anything other than the default, record the default 
 				if (_defaultVerticalScrollVisibility == null)
+				{
 					_defaultVerticalScrollVisibility = ScrollViewer.GetVerticalScrollBarVisibility(Control);
+				}
 			}
 
 			if (_defaultVerticalScrollVisibility == null)
@@ -402,7 +460,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		void UpdateHorizontalScrollBarVisibility()
 		{
 			if (_defaultHorizontalScrollVisibility == null)
+			{
 				_defaultHorizontalScrollVisibility = ScrollViewer.GetHorizontalScrollBarVisibility(Control);
+			}
 
 			switch (Element.HorizontalScrollBarVisibility)
 			{
@@ -542,7 +602,12 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 						if (IsElementVisibleInContainer(presenter, _scrollViewer, itemsLayoutOrientation))
 						{
 							if (firstVisibleItemIndex == -1)
+							{
 								firstVisibleItemIndex = count;
+							}
+
+							lastVisibleItemIndex = count;
+							}
 
 							lastVisibleItemIndex = count;
 						}
@@ -561,10 +626,14 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		bool IsElementVisibleInContainer(FrameworkElement element, FrameworkElement container, ItemsLayoutOrientation itemsLayoutOrientation)
 		{
 			if (element == null || container == null)
+			{
 				return false;
+			}
 
 			if (element.Visibility != WVisibility.Visible)
+			{
 				return false;
+			}
 
 			var elementBounds = element.TransformToVisual(container).TransformBounds(new WRect(0, 0, element.ActualWidth, element.ActualHeight));
 			var containerBounds = new WRect(0, 0, container.ActualWidth, container.ActualHeight);
@@ -576,7 +645,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 				default:
 					return elementBounds.Left < containerBounds.Right && elementBounds.Right > containerBounds.Left;
-			};
+			}
+			;
 		}
 
 		async void ScrollToRequested(object sender, ScrollToRequestEventArgs args)

@@ -20,10 +20,14 @@ namespace Microsoft.Maui.ApplicationModel
 		public Task<bool> TryOpenAsync(double latitude, double longitude, MapLaunchOptions options)
 		{
 			if (options == null)
+			{
 				throw new ArgumentNullException(nameof(options));
+			}
 
 			if (string.IsNullOrWhiteSpace(options.Name))
+			{
 				options.Name = string.Empty;
+			}
 
 			NSDictionary dictionary = null;
 			var placemark = new MKPlacemark(new CLLocationCoordinate2D(latitude, longitude), dictionary);
@@ -40,10 +44,14 @@ namespace Microsoft.Maui.ApplicationModel
 		public async Task<bool> TryOpenAsync(Placemark placemark, MapLaunchOptions options)
 		{
 			if (placemark == null)
+			{
 				throw new ArgumentNullException(nameof(placemark));
+			}
 
 			if (options == null)
+			{
 				throw new ArgumentNullException(nameof(options));
+			}
 
 #if __IOS__
 			var address = new MKPlacemarkAddress

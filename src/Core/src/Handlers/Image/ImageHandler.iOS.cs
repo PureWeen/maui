@@ -41,7 +41,9 @@ namespace Microsoft.Maui.Handlers
 		public void OnWindowChanged()
 		{
 			if (SourceLoader.SourceManager.RequiresReload(PlatformView))
+			{
 				UpdateValue(nameof(IImage.Source));
+			}
 		}
 
 		partial class ImageImageSourcePartSetter
@@ -49,11 +51,15 @@ namespace Microsoft.Maui.Handlers
 			public override void SetImageSource(UIImage? platformImage)
 			{
 				if (Handler?.PlatformView is not UIImageView imageView)
+				{
 					return;
+				}
 
 				imageView.Image = platformImage;
 				if (Handler?.VirtualView is IImage image && image.Source is IStreamImageSource)
+				{
 					imageView.InvalidateMeasure(image);
+				}
 			}
 		}
 	}

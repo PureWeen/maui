@@ -9,7 +9,9 @@ namespace Microsoft.Maui.Controls.Design
 		{
 			// MUST MATCH ImageSourceConverter.ConvertFrom
 			if (value?.ToString() is string strValue)
+			{
 				return Uri.TryCreate(strValue, UriKind.Absolute, out Uri _);
+			}
 
 			return false;
 		}

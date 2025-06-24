@@ -34,7 +34,9 @@ namespace Microsoft.Maui.Platform
 			var mauiContext = Handler?.MauiContext;
 
 			if (contextFlyout == null || mauiContext == null)
+			{
 				return null;
+			}
 
 			var contextFlyoutHandler = contextFlyout.ToHandler(mauiContext);
 			var contextFlyoutPlatformView = contextFlyoutHandler.PlatformView;
@@ -69,10 +71,12 @@ namespace Microsoft.Maui.Platform
 			{
 			}
 
-			public UIContextMenuConfiguration? GetConfigurationForMenu(UIContextMenuInteraction interaction, CGPoint location)
+			public static UIContextMenuConfiguration? GetConfigurationForMenu(UIContextMenuInteraction interaction, CGPoint location)
 			{
 				if (interaction is MauiUIContextMenuInteraction contextMenu)
+				{
 					return contextMenu.GetConfigurationForMenu();
+				}
 
 				return null;
 			}

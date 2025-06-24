@@ -30,7 +30,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			var (visibleItems, firstVisibleItemIndex, centerItemIndex, lastVisibleItemIndex) = GetVisibleItemsIndex();
 
 			if (!visibleItems)
+			{
 				return;
+			}
 
 			var contentInset = scrollView.ContentInset;
 			var contentOffsetX = scrollView.ContentOffset.X + contentInset.Left;
@@ -49,7 +51,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 			var viewController = ViewController;
 			if (viewController is null)
+			{
 				return;
+			}
 
 			var itemsView = viewController.ItemsView;
 			var source = viewController.ItemsSource;
@@ -64,11 +68,17 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 					return;
 				case 0:
 					if (lastVisibleItemIndex == source.ItemCount - 1)
+					{
 						itemsView.SendRemainingItemsThresholdReached();
+					}
+
 					break;
 				default:
 					if (source.ItemCount - 1 - lastVisibleItemIndex <= itemsView.RemainingItemsThreshold)
+					{
 						itemsView.SendRemainingItemsThresholdReached();
+					}
+
 					break;
 			}
 		}
@@ -112,14 +122,18 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			{
 				var actualWidth = collectionView.ContentSize.Width - collectionView.Bounds.Size.Width;
 				if (collectionView.ContentOffset.X >= actualWidth || collectionView.ContentOffset.X < 0)
+				{
 					return;
+				}
 			}
 			else
 			{
 				var actualHeight = collectionView.ContentSize.Height - collectionView.Bounds.Size.Height;
 
 				if (collectionView.ContentOffset.Y >= actualHeight || collectionView.ContentOffset.Y < 0)
+				{
 					return;
+				}
 			}
 		}
 
@@ -127,7 +141,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		{
 			var collectionView = ViewController?.CollectionView;
 			if (collectionView is null)
+			{
 				return default;
+			}
 
 			var indexPathsForVisibleItems = collectionView.IndexPathsForVisibleItems.OrderBy(x => x.Row).ToList();
 
@@ -164,7 +180,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			var indexPathsForVisibleItems = collectionView.IndexPathsForVisibleItems.OrderBy(x => x.Row).ToList();
 
 			if (indexPathsForVisibleItems.Count == 0)
+			{
 				return centerItemIndex;
+			}
 
 			var firstVisibleItemIndex = indexPathsForVisibleItems.First();
 

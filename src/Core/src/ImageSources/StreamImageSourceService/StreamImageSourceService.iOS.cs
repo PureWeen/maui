@@ -17,24 +17,32 @@ namespace Microsoft.Maui
 		public async Task<IImageSourceServiceResult<UIImage>?> GetImageAsync(IStreamImageSource imageSource, float scale = 1, CancellationToken cancellationToken = default)
 		{
 			if (imageSource.IsEmpty)
+			{
 				return null;
+			}
 
 			try
 			{
 				var stream = await imageSource.GetStreamAsync(cancellationToken).ConfigureAwait(false);
 
 				if (stream == null)
+				{
 					throw new InvalidOperationException("Unable to load image stream.");
+				}
 
 				using var data = NSData.FromStream(stream);
 				if (data == null)
+				{
 					throw new InvalidOperationException("Unable to load image stream data.");
+				}
 
 				// We do not need to pass the scale in here as the image file is not scaled to the screen scale.
 				var image = UIImage.LoadFromData(data);
 
 				if (image == null)
+				{
 					throw new InvalidOperationException("Unable to decode image from stream.");
+				}
 
 				var result = new ImageSourceServiceResult(image, () => image.Dispose());
 

@@ -37,7 +37,9 @@ namespace Microsoft.Maui.Controls
 
 					var lastPage = pages[pages.Count - 1];
 					if (lastPage == null)
+					{
 						break;
+					}
 
 					pages.Remove(lastPage);
 
@@ -46,7 +48,9 @@ namespace Microsoft.Maui.Controls
 					foreach (var page in pages)
 					{
 						if (page == null)
+						{
 							continue;
+						}
 
 						var route = Routing.GetRoute(page);
 						buildUpPages.AddRange(CollapsePath(route, buildUpPages, false));
@@ -93,10 +97,14 @@ namespace Microsoft.Maui.Controls
 			// file: as the default scheme where as android just crashes
 			// so this checks if it starts with / and just forces relative
 			if (path.StartsWith(_pathSeparator, StringComparison.Ordinal))
+			{
 				return new Uri(path, UriKind.Relative);
+			}
 
 			if (Uri.TryCreate(path, UriKind.Absolute, out Uri result))
+			{
 				return result;
+			}
 
 			return new Uri(path, UriKind.Relative);
 		}
@@ -104,7 +112,9 @@ namespace Microsoft.Maui.Controls
 		public static bool IsTargetRelativePop(ShellNavigationParameters request)
 		{
 			if (request?.TargetState?.Location?.OriginalString == null)
+			{
 				return false;
+			}
 
 			bool isRelativePopping = false;
 
@@ -122,7 +132,9 @@ namespace Microsoft.Maui.Controls
 					break;
 				}
 				else
+				{
 					isRelativePopping = true;
+				}
 			}
 
 			return isRelativePopping;
@@ -138,21 +150,31 @@ namespace Microsoft.Maui.Controls
 		{
 			string[] pathAndQuery;
 			if (request.IsAbsoluteUri)
+			{
 				pathAndQuery = $"{request.Host}/{request.PathAndQuery}".Split('?');
+			}
 			else
+			{
 				pathAndQuery = request.OriginalString.Split('?');
+			}
 
 			string query = null;
 			if (pathAndQuery.Length > 1)
+			{
 				query = $"?{pathAndQuery[1]}";
+			}
 
 			var segments = new List<string>(RetrievePaths(pathAndQuery[0]));
 
 			if (segments[0] != routeHost)
+			{
 				segments.Insert(0, routeHost);
+			}
 
 			if (segments[1] != route)
+			{
 				segments.Insert(1, route);
+			}
 
 			var path = String.Join(_pathSeparator, segments.ToArray());
 			string uri = $"{routeScheme}://{path}{query}";
@@ -165,10 +187,13 @@ namespace Microsoft.Maui.Controls
 		static internal ShellNavigationRequest.WhatToDoWithTheStack CalculateStackRequest(Uri uri)
 		{
 			if (uri.IsAbsoluteUri)
+			{
 				return ShellNavigationRequest.WhatToDoWithTheStack.ReplaceIt;
+			}
 			else if (uri.OriginalString.StartsWith("//", StringComparison.Ordinal) || uri.OriginalString.StartsWith("\\\\", StringComparison.Ordinal))
+			{
 				return ShellNavigationRequest.WhatToDoWithTheStack.ReplaceIt;
-
+			}
 
 			return ShellNavigationRequest.WhatToDoWithTheStack.PushToIt;
 		}
@@ -187,7 +212,9 @@ namespace Microsoft.Maui.Controls
 			if (possibleRouteMatches.Count == 0)
 			{
 				if (throwNavigationErrorAsException)
+				{
 					throw new ArgumentException($"unable to figure out route for: {uri}", nameof(uri));
+				}
 
 				return null;
 			}
@@ -204,7 +231,9 @@ namespace Microsoft.Maui.Controls
 				string matchesFound = String.Join(",", matches);
 
 				if (throwNavigationErrorAsException)
+				{
 					throw new ArgumentException($"Ambiguous routes matched for: {uri} matches found: {matchesFound}", nameof(uri));
+				}
 
 				return null;
 			}
@@ -234,14 +263,18 @@ namespace Microsoft.Maui.Controls
 
 			List<RouteRequestBuilder> possibleRoutePaths = new List<RouteRequestBuilder>();
 			if (!request.IsAbsoluteUri)
+			{
 				request = ConvertToStandardFormat(shell, request);
+			}
 
 			string localPath = request.LocalPath;
 
 			bool relativeMatch = false;
 			if (!originalRequest.IsAbsoluteUri &&
 				!originalRequest.OriginalString.StartsWith("//", StringComparison.Ordinal))
+			{
 				relativeMatch = true;
+			}
 
 			var segments = new List<string>(RetrievePaths(localPath));
 
@@ -261,7 +294,9 @@ namespace Microsoft.Maui.Controls
 			{
 				var result = ProcessRelativeRoute(shell, routeKeys, segments, enableRelativeShellRoutes, originalRequest);
 				if (result.Count > 0)
+				{
 					return result;
+				}
 			}
 
 			possibleRoutePaths.Clear();
@@ -269,7 +304,9 @@ namespace Microsoft.Maui.Controls
 
 			var bestMatches = GetBestMatches(possibleRoutePaths);
 			if (bestMatches.Count > 0)
+			{
 				return bestMatches;
+			}
 
 			bestMatches.Clear();
 			ExpandOutGlobalRoutes(possibleRoutePaths, routeKeys);
@@ -277,13 +314,17 @@ namespace Microsoft.Maui.Controls
 			foreach (var possibleRoutePath in possibleRoutePaths)
 			{
 				if (possibleRoutePath.IsFullMatch)
+				{
 					continue;
+				}
 
 				var url = possibleRoutePath.PathFull;
 				var currentLocation = possibleRoutePath.GetNodeLocation();
 
 				if (currentLocation.Content == null)
+				{
 					continue;
+				}
 
 				var globalRouteMatches =
 					SearchForGlobalRoutes(
@@ -293,7 +334,9 @@ namespace Microsoft.Maui.Controls
 						routeKeys);
 
 				if (globalRouteMatches.Count != 1)
+				{
 					continue;
+				}
 
 				var globalRouteMatch = globalRouteMatches[0];
 
@@ -301,7 +344,9 @@ namespace Microsoft.Maui.Controls
 				{
 					var matchIndex = globalRouteMatch.SegmentsMatched.IndexOf(possibleRoutePath.NextSegment);
 					if (matchIndex < 0)
+					{
 						break;
+					}
 
 					possibleRoutePath.AddGlobalRoute(
 						globalRouteMatch.GlobalRouteMatches[matchIndex],
@@ -413,14 +458,20 @@ namespace Microsoft.Maui.Controls
 				if (routeKeys.Contains(segment))
 				{
 					if (builder == null)
+					{
 						builder = new RouteRequestBuilder(segment, segment, null, segments);
+					}
 					else
+					{
 						builder.AddGlobalRoute(segment, segment);
+					}
 				}
 			}
 
 			if (builder != null && builder.IsFullMatch)
+			{
 				return new List<RouteRequestBuilder> { builder };
+			}
 
 			return new List<RouteRequestBuilder>();
 		}
@@ -462,7 +513,9 @@ namespace Microsoft.Maui.Controls
 
 				var additionalRouteMatches = routeRequestBuilder.GlobalRouteMatches;
 				for (int i = existingGlobalRoutes.Count; i < additionalRouteMatches.Count; i++)
+				{
 					requestBuilderWithNewSegments.AddGlobalRoute(additionalRouteMatches[i], segments[i - existingGlobalRoutes.Count]);
+				}
 
 				pureGlobalRoutesMatch.Add(requestBuilderWithNewSegments);
 			}
@@ -505,12 +558,16 @@ namespace Microsoft.Maui.Controls
 			int walkBackCurrentStackIndex = -1;
 
 			if (paths.Count > 0)
+			{
 				walkBackCurrentStackIndex = localRouteStack.IndexOf(paths[0]);
+			}
 
 			while (paths.Count > 1 && walkBackCurrentStackIndex >= 0)
 			{
 				if (localRouteStack.Count <= walkBackCurrentStackIndex)
+				{
 					break;
+				}
 
 				if (paths[0] == localRouteStack[walkBackCurrentStackIndex])
 				{
@@ -541,7 +598,9 @@ namespace Microsoft.Maui.Controls
 						routeKey.Split(_pathSeparators, StringSplitOptions.RemoveEmptyEntries);
 
 					if (routeKeyPaths[0] == collapsedRoutes[0])
+					{
 						collapsedRoute = "//" + collapsedRoute;
+					}
 				}
 
 				string collapsedMatch = possibleRoutePath.GetNextSegmentMatch(collapsedRoute);
@@ -579,7 +638,9 @@ namespace Microsoft.Maui.Controls
 						var collapsedLeafRoute = String.Join(_pathSeparator, CollapsePath(routeKey, leafSearch.SegmentsMatched, true));
 
 						if (routeKey.StartsWith("//", StringComparison.Ordinal))
+						{
 							collapsedLeafRoute = "//" + collapsedLeafRoute;
+						}
 
 						string segmentMatch = leafSearch.GetNextSegmentMatch(collapsedLeafRoute);
 						if (!String.IsNullOrWhiteSpace(segmentMatch))
@@ -609,7 +670,9 @@ namespace Microsoft.Maui.Controls
 			foreach (var possibleRoutePath in possibleRoutePaths)
 			{
 				while (FindAndAddSegmentMatch(possibleRoutePath, routeKeys))
+				{
 					;
+				}
 
 				while (!possibleRoutePath.IsFullMatch)
 				{
@@ -669,7 +732,9 @@ namespace Microsoft.Maui.Controls
 					}
 
 					if (!matchFound)
+					{
 						bestMatches.Add(match);
+					}
 				}
 			}
 
@@ -683,27 +748,39 @@ namespace Microsoft.Maui.Controls
 						RouteRequestBuilder betterMatch = null;
 
 						if (bestMatches[j].MatchedParts > bestMatches[i].MatchedParts)
+						{
 							betterMatch = bestMatches[j];
+						}
 						else if (bestMatches[j].MatchedParts < bestMatches[i].MatchedParts)
+						{
 							betterMatch = bestMatches[i];
+						}
 
 						// nobody wins
 						if (betterMatch == null)
 						{
 							if (!betterMatches.Contains(bestMatches[i]))
+							{
 								betterMatches.Add(bestMatches[i]);
+							}
 
 							if (!betterMatches.Contains(bestMatches[j]))
+							{
 								betterMatches.Add(bestMatches[j]);
+							}
 						}
 						else if (betterMatch != null && !betterMatches.Contains(betterMatch))
+						{
 							betterMatches.Add(betterMatch);
+						}
 					}
 				}
 
 				// Nothing was trimmed on last pass
 				if (bestMatches.Count == betterMatches.Count)
+				{
 					return betterMatches;
+				}
 
 				bestMatches = betterMatches;
 			}
@@ -748,16 +825,23 @@ namespace Microsoft.Maui.Controls
 						Section = null;
 						Content = null;
 						if (Shell == null)
+						{
 							Shell = (Shell)Item.Parent;
+						}
+
 						break;
 					case ShellSection section:
 						Section = section;
 
 						if (Item == null)
+						{
 							Item = Section.Parent as ShellItem;
+						}
 
 						if (Shell == null)
+						{
 							Shell = (Shell)Item.Parent;
+						}
 
 						Content = null;
 
@@ -765,13 +849,19 @@ namespace Microsoft.Maui.Controls
 					case ShellContent content:
 						Content = content;
 						if (Section == null)
+						{
 							Section = Content.Parent as ShellSection;
+						}
 
 						if (Item == null)
+						{
 							Item = Section.Parent as ShellItem;
+						}
 
 						if (Shell == null)
+						{
 							Shell = (Shell)Item.Parent;
+						}
 
 						break;
 
@@ -784,11 +874,19 @@ namespace Microsoft.Maui.Controls
 				paths.Add(Shell.RouteHost);
 				paths.Add(Shell.Route);
 				if (Item != null && !Routing.IsImplicit(Item))
+				{
 					paths.Add(Item.Route);
+				}
+
 				if (Section != null && !Routing.IsImplicit(Section))
+				{
 					paths.Add(Section.Route);
+				}
+
 				if (Content != null && !Routing.IsImplicit(Content))
+				{
 					paths.Add(Content.Route);
+				}
 
 				string uri = String.Join(_pathSeparator, paths);
 				return new Uri($"{Shell.RouteScheme}://{uri}");
@@ -797,13 +895,21 @@ namespace Microsoft.Maui.Controls
 			public void Pop()
 			{
 				if (Content != null)
+				{
 					Content = null;
+				}
 				else if (Section != null)
+				{
 					Section = null;
+				}
 				else if (Item != null)
+				{
 					Item = null;
+				}
 				else if (Shell != null)
+				{
 					Shell = null;
+				}
 			}
 
 			public NodeLocation WalkToNextNode()
@@ -861,7 +967,9 @@ namespace Microsoft.Maui.Controls
 			bool ignoreGlobalRoutes = true)
 		{
 			if (node is GlobalRouteItem && ignoreGlobalRoutes)
+			{
 				return;
+			}
 
 			++myDepth;
 			currentLocation = currentLocation ?? new NodeLocation();
@@ -872,7 +980,9 @@ namespace Microsoft.Maui.Controls
 			{
 				items = GetItems(node);
 				if (items == null)
+				{
 					return;
+				}
 
 				foreach (var nextNode in items)
 				{
@@ -894,13 +1004,17 @@ namespace Microsoft.Maui.Controls
 			}
 
 			if (userSegment == null)
+			{
 				return;
+			}
 
 			RouteRequestBuilder builder = null;
 			if (shellSegment == userSegment || Routing.IsImplicit(shellSegment))
 			{
 				if (currentMatchedPath == null)
+				{
 					builder = new RouteRequestBuilder(shellSegment, userSegment, node, segments);
+				}
 				else
 				{
 					builder = new RouteRequestBuilder(currentMatchedPath);
@@ -908,12 +1022,16 @@ namespace Microsoft.Maui.Controls
 				}
 
 				if (!Routing.IsImplicit(shellSegment) || shellSegment == userSegment)
+				{
 					possibleRoutePaths.Add(builder);
+				}
 			}
 
 			items = GetItems(node);
 			if (items == null)
+			{
 				return;
+			}
 
 			foreach (var nextNode in items)
 			{
@@ -964,20 +1082,28 @@ namespace Microsoft.Maui.Controls
 			}
 
 			if (results == null)
+			{
 				throw new ArgumentException($"{node}", nameof(node));
+			}
 
 			foreach (var result in results)
+			{
 				yield return result;
+			}
 
 			if (node is GlobalRouteItem)
+			{
 				yield break;
+			}
 
 			var keys = Routing.GetRouteKeys();
 			string route = GetRoute(node);
 			foreach (var key in keys)
 			{
 				if (key.StartsWith(_pathSeparator, StringComparison.Ordinal) && !(node is Shell))
+				{
 					continue;
+				}
 
 				var segments = RetrievePaths(key);
 
@@ -1005,7 +1131,9 @@ namespace Microsoft.Maui.Controls
 					var segments = RetrievePaths(_path).ToList().Skip(1).ToList();
 
 					if (segments.Count == 0)
+					{
 						return Array.Empty<object>();
+					}
 
 					var route = Routing.FormatRoute(segments);
 
@@ -1020,7 +1148,9 @@ namespace Microsoft.Maui.Controls
 					var segments = RetrievePaths(_path);
 
 					if (segments.Length == 0)
+					{
 						return string.Empty;
+					}
 
 					return segments[0];
 				}
@@ -1033,7 +1163,9 @@ namespace Microsoft.Maui.Controls
 					var segments = RetrievePaths(_path).ToList().Skip(1).ToList();
 
 					if (segments.Count == 0)
+					{
 						return true;
+					}
 
 					return false;
 				}

@@ -95,7 +95,7 @@ namespace UITest.Appium
 				ske.PressKeyCode(keyCode, metastate);
 				return;
 			}
-			
+
 			throw new InvalidOperationException($"SendKeys is not supported on {aaa.Driver}");
 		}
 

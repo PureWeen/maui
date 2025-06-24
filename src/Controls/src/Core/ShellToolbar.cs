@@ -39,7 +39,9 @@ namespace Microsoft.Maui.Controls
 					ApplyChanges();
 				}
 				else if (p.Is(Shell.TitleProperty))
+				{
 					UpdateTitle();
+				}
 			};
 
 			shell.HandlerChanged += (_, __) => ApplyChanges();
@@ -58,20 +60,28 @@ namespace Microsoft.Maui.Controls
 			if (_currentPage != currentPage)
 			{
 				if (_currentPage != null)
+				{
 					_currentPage.PropertyChanged -= OnCurrentPagePropertyChanged;
+				}
 
 				_currentPage = currentPage;
 
 				if (_currentPage != null)
+				{
 					_currentPage.PropertyChanged += OnCurrentPagePropertyChanged;
+				}
 			}
 
 			if (currentPage == null)
+			{
 				return;
+			}
 
 			var stack = _shell.Navigation.NavigationStack;
 			if (stack.Count == 0)
+			{
 				return;
+			}
 
 			_toolbarTracker.Target = _shell;
 #if WINDOWS
@@ -80,7 +90,9 @@ namespace Microsoft.Maui.Controls
 
 			Page? previousPage = null;
 			if (stack.Count > 1)
+			{
 				previousPage = stack[stack.Count - 1];
+			}
 
 			ToolbarItems = _toolbarTracker.ToolbarItems;
 
@@ -102,7 +114,9 @@ namespace Microsoft.Maui.Controls
 			{
 				// Shell.GetEffectiveValue doesn't check the Shell itself, so check it here
 				if (_shell.IsSet(Shell.NavBarIsVisibleProperty))
+				{
 					return (bool)_shell.GetValue(Shell.NavBarIsVisibleProperty);
+				}
 
 				var flyoutBehavior = (_shell as IFlyoutView).FlyoutBehavior;
 #if WINDOWS
@@ -123,7 +137,9 @@ namespace Microsoft.Maui.Controls
 			IsVisible = _shell.GetEffectiveValue(Shell.NavBarIsVisibleProperty, getDefaultNavBarIsVisible, observer: null);
 
 			if (currentPage != null)
+			{
 				DynamicOverflowEnabled = PlatformConfiguration.WindowsSpecific.Page.GetToolbarDynamicOverflowEnabled(currentPage);
+			}
 		}
 
 		void UpdateBackbuttonBehavior()
@@ -131,15 +147,21 @@ namespace Microsoft.Maui.Controls
 			var bbb = Shell.GetBackButtonBehavior(_currentPage);
 
 			if (bbb == _backButtonBehavior)
+			{
 				return;
+			}
 
 			if (_backButtonBehavior != null)
+			{
 				_backButtonBehavior.PropertyChanged -= OnBackButtonCommandPropertyChanged;
+			}
 
 			_backButtonBehavior = bbb;
 
 			if (_backButtonBehavior != null)
+			{
 				_backButtonBehavior.PropertyChanged += OnBackButtonCommandPropertyChanged;
+			}
 		}
 
 		void OnBackButtonCommandPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -150,7 +172,9 @@ namespace Microsoft.Maui.Controls
 		void OnCurrentPagePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			if (e.Is(Page.TitleProperty))
+			{
 				UpdateTitle();
+			}
 			else if (e.IsOneOf(
 				Shell.BackButtonBehaviorProperty,
 				Shell.NavBarIsVisibleProperty,

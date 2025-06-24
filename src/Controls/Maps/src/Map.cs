@@ -131,7 +131,10 @@ namespace Microsoft.Maui.Controls.Maps
 		public void MoveToRegion(MapSpan mapSpan)
 		{
 			if (mapSpan == null)
+			{
 				throw new ArgumentNullException(nameof(mapSpan));
+			}
+
 			_lastMoveToRegion = mapSpan;
 			Handler?.Invoke(nameof(IMap.MoveToRegion), _lastMoveToRegion);
 		}
@@ -144,10 +147,14 @@ namespace Microsoft.Maui.Controls.Maps
 		void SetVisibleRegion(MapSpan? visibleRegion)
 		{
 			if (visibleRegion == null)
+			{
 				throw new ArgumentNullException(nameof(visibleRegion));
+			}
 
 			if (_visibleRegion == visibleRegion)
+			{
 				return;
+			}
 
 			OnPropertyChanging(nameof(VisibleRegion));
 			_visibleRegion = visibleRegion;
@@ -157,7 +164,10 @@ namespace Microsoft.Maui.Controls.Maps
 		void PinsOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
 		{
 			if (e.NewItems != null && e.NewItems.Cast<Pin>().Any(pin => pin.Label == null))
+			{
 				throw new ArgumentException("Pin must have a Label to be added to a map");
+			}
+
 			Handler?.UpdateValue(nameof(IMap.Pins));
 		}
 
@@ -254,10 +264,14 @@ namespace Microsoft.Maui.Controls.Maps
 		{
 			DataTemplate? itemTemplate = ItemTemplate;
 			if (itemTemplate == null)
+			{
 				itemTemplate = ItemTemplateSelector?.SelectTemplate(newItem, this);
+			}
 
 			if (itemTemplate == null)
+			{
 				return;
+			}
 
 			var pin = (Pin)itemTemplate.CreateContent();
 			pin.BindingContext = newItem;

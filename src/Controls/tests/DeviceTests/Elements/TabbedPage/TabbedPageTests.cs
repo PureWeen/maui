@@ -178,7 +178,9 @@ namespace Microsoft.Maui.DeviceTests
 					await OnNavigatedToAsync(currentPage);
 					int pageIndex = tabbedPage.Children.IndexOf(currentPage) + 1;
 					if (pageIndex >= pageCount)
+					{
 						pageIndex = 0;
+					}
 
 					var nextPage = tabbedPage.Children[pageIndex];
 					tabbedPage.CurrentPage = nextPage;
@@ -296,7 +298,8 @@ namespace Microsoft.Maui.DeviceTests
 				{
 					Title = title
 				};
-			};
+			}
+			;
 
 			var tabbedPage = CreateBasicTabbedPage(bottomTabs, isSmoothScrollEnabled, pages);
 

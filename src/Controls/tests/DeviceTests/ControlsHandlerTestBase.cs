@@ -90,11 +90,17 @@ namespace Microsoft.Maui.DeviceTests
 			IWindow window;
 
 			if (view is IWindow w)
+			{
 				window = w;
+			}
 			else if (view is Page page)
+			{
 				window = new Controls.Window(page);
+			}
 			else
+			{
 				window = new Controls.Window(new ContentPage() { Content = (View)view });
+			}
 
 			return window;
 		}
@@ -142,6 +148,8 @@ namespace Microsoft.Maui.DeviceTests
 			mauiContext ??= MauiContext;
 
 			if (System.Diagnostics.Debugger.IsAttached)
+
+<<<<<<< TODO: Unmerged change from project 'Controls.DeviceTests(net8.0-windows10.0.19041)', Before:
 				timeOut ??= TimeSpan.FromHours(1);
 			else
 				timeOut ??= TimeSpan.FromSeconds(15);
@@ -248,6 +256,262 @@ namespace Microsoft.Maui.DeviceTests
 							throw new Exception($"Use IWindowHandler instead of WindowHandler for CreateHandlerAndAddToWindow");
 						else
 							throw new Exception($"I can't work with {typeof(THandler)}");
+=======
+			{
+				timeOut ??= TimeSpan.FromHours(1);
+			}
+			else
+			{
+				timeOut ??= TimeSpan.FromSeconds(15);
+			}
+
+			return InvokeOnMainThreadAsync(async () =>
+			{
+				IWindow window = CreateWindowForContent(view);
+
+				var application = mauiContext.Services.GetService<IApplication>();
+
+				if (application is ApplicationStub appStub)
+				{
+					appStub.SetWindow((Window)window);
+
+					// Trigger the work flow of creating a window
+					_ = application.CreateWindow(null);
+				}
+
+				try
+				{
+					await _takeOverMainContentSempahore.WaitAsync();
+
+					await SetupWindowForTests<THandler>(window, async () =>
+					{
+						IView content = window.Content;
+
+						if (content is FlyoutPage fp)
+						{
+							content = fp.Detail;
+						}
+
+						if (window is Window w && w.Navigation.ModalStack.Count > 0)
+						{
+							content = w.Navigation.ModalStack.Last();
+						}
+
+						if (content is IPageContainer<Page> pc)
+						{
+							content = pc.CurrentPage;
+							if (content is null)
+							{
+								// This is mainly a timing issue with Shell.
+								// Basically the `CurrentPage` on Shell isn't initialized until it's
+								// actually navigated to because it's a DataTemplate.
+								// The CurrentPage doesn't come into existence until the platform requests it.
+								// The initial `Navigated` events on Shell all fire a bit too early as well.
+								// Ideally I'd just use that instead of having to add a delay.
+								await Task.Delay(100);
+								content = pc.CurrentPage;
+							}
+
+							_ = content ?? throw new InvalidOperationException("Current Page Not Initialized");
+						}
+
+						if (content is VisualElement vc)
+						{
+							await OnLoadedAsync(vc);
+
+							if (vc.Frame.Height < 0 && vc.Frame.Width < 0)
+							{
+								var batchTcs = new TaskCompletionSource();
+								vc.BatchCommitted += OnBatchCommitted;
+								await batchTcs.Task.WaitAsync(timeOut.Value);
+								if (vc.Frame.Height < 0 && vc.Frame.Width < 0)
+								{
+									Assert.Fail($"{content} Failed to layout");
+								}
+
+								void OnBatchCommitted(object sender, Controls.Internals.EventArg<VisualElement> e)
+								{
+									vc.BatchCommitted -= OnBatchCommitted;
+									batchTcs.SetResult();
+								}
+							}
+						}
+
+						// Gives time for the measure/layout pass to settle
+						await Task.Yield();
+						if (view is VisualElement veBeingTested)
+						{
+							await OnLoadedAsync(veBeingTested);
+						}
+
+#if !WINDOWS
+						if (window is Window controlsWindow)
+						{
+							if (!controlsWindow.IsActivated)
+								window.Activated();
+						}
+						else
+						{
+							controlsWindow = null;
+							window.Activated();
+						}
+#endif
+
+#if WINDOWS
+						await Task.Delay(10);
+#endif
+
+						THandler handler;
+
+						if (typeof(THandler).IsAssignableFrom(window.Handler.GetType()))
+						{
+							handler = (THandler)window.Handler;
+						}
+						else if (typeof(THandler).IsAssignableFrom(window.Content.Handler.GetType()))
+						{
+							handler = (THandler)window.Content.Handler;
+						}
+						else if (window.Content is ContentPage cp && typeof(THandler).IsAssignableFrom(cp.Content.Handler.GetType()))
+						{
+							handler = (THandler)cp.Content.Handler;
+						}
+						else if (typeof(THandler).IsAssignableFrom(typeof(WindowHandler)))
+						{
+							throw new Exception($"Use IWindowHandler instead of WindowHandler for CreateHandlerAndAddToWindow");
+						}
+						else
+						{
+							throw new Exception($"I can't work with {typeof(THandler)}");
+						}
+>>>>>>> After
+			{
+				timeOut ??= TimeSpan.FromHours(1);
+			}
+			else
+			{
+				timeOut ??= TimeSpan.FromSeconds(15);
+			}
+
+			return InvokeOnMainThreadAsync(async () =>
+			{
+				IWindow window = CreateWindowForContent(view);
+
+				var application = mauiContext.Services.GetService<IApplication>();
+
+				if (application is ApplicationStub appStub)
+				{
+					appStub.SetWindow((Window)window);
+
+					// Trigger the work flow of creating a window
+					_ = application.CreateWindow(null);
+				}
+
+				try
+				{
+					await _takeOverMainContentSempahore.WaitAsync();
+
+					await SetupWindowForTests<THandler>(window, async () =>
+					{
+						IView content = window.Content;
+
+						if (content is FlyoutPage fp)
+						{
+							content = fp.Detail;
+						}
+
+						if (window is Window w && w.Navigation.ModalStack.Count > 0)
+						{
+							content = w.Navigation.ModalStack.Last();
+						}
+
+						if (content is IPageContainer<Page> pc)
+						{
+							content = pc.CurrentPage;
+							if (content is null)
+							{
+								// This is mainly a timing issue with Shell.
+								// Basically the `CurrentPage` on Shell isn't initialized until it's
+								// actually navigated to because it's a DataTemplate.
+								// The CurrentPage doesn't come into existence until the platform requests it.
+								// The initial `Navigated` events on Shell all fire a bit too early as well.
+								// Ideally I'd just use that instead of having to add a delay.
+								await Task.Delay(100);
+								content = pc.CurrentPage;
+							}
+
+							_ = content ?? throw new InvalidOperationException("Current Page Not Initialized");
+						}
+
+						if (content is VisualElement vc)
+						{
+							await OnLoadedAsync(vc);
+
+							if (vc.Frame.Height < 0 && vc.Frame.Width < 0)
+							{
+								var batchTcs = new TaskCompletionSource();
+								vc.BatchCommitted += OnBatchCommitted;
+								await batchTcs.Task.WaitAsync(timeOut.Value);
+								if (vc.Frame.Height < 0 && vc.Frame.Width < 0)
+								{
+									Assert.Fail($"{content} Failed to layout");
+								}
+
+								void OnBatchCommitted(object sender, Controls.Internals.EventArg<VisualElement> e)
+								{
+									vc.BatchCommitted -= OnBatchCommitted;
+									batchTcs.SetResult();
+								}
+							}
+						}
+
+						// Gives time for the measure/layout pass to settle
+						await Task.Yield();
+						if (view is VisualElement veBeingTested)
+						{
+							await OnLoadedAsync(veBeingTested);
+						}
+
+#if !WINDOWS
+						if (window is Window controlsWindow)
+						{
+							if (!controlsWindow.IsActivated)
+							{
+								window.Activated();
+							}
+						}
+						else
+						{
+							controlsWindow = null;
+							window.Activated();
+						}
+#endif
+
+#if WINDOWS
+						await Task.Delay(10);
+#endif
+
+						THandler handler;
+
+						if (typeof(THandler).IsAssignableFrom(window.Handler.GetType()))
+						{
+							handler = (THandler)window.Handler;
+						}
+						else if (typeof(THandler).IsAssignableFrom(window.Content.Handler.GetType()))
+						{
+							handler = (THandler)window.Content.Handler;
+						}
+						else if (window.Content is ContentPage cp && typeof(THandler).IsAssignableFrom(cp.Content.Handler.GetType()))
+						{
+							handler = (THandler)cp.Content.Handler;
+						}
+						else if (typeof(THandler).IsAssignableFrom(typeof(WindowHandler)))
+						{
+							throw new Exception($"Use IWindowHandler instead of WindowHandler for CreateHandlerAndAddToWindow");
+						}
+						else
+						{
+							throw new Exception($"I can't work with {typeof(THandler)}");
+						}
 
 						await action(handler).WaitAsync(timeOut.Value);
 
@@ -257,10 +521,14 @@ namespace Microsoft.Maui.DeviceTests
 						bool isDestroyed = controlsWindow?.IsDestroyed ?? false;
 
 						if (isActivated)
+						{
 							window.Deactivated();
+						}
 
 						if (!isDestroyed)
+						{
 							window.Destroying();
+						}
 #endif
 
 					}, mauiContext);
@@ -419,7 +687,10 @@ namespace Microsoft.Maui.DeviceTests
 				loaded = async (_, __) =>
 				{
 					if (loaded is not null)
+					{
 						frameworkElement.Loaded -= loaded;
+					}
+
 					try
 					{
 						await Task.Yield();
@@ -471,7 +742,10 @@ namespace Microsoft.Maui.DeviceTests
 				unloaded = async (_, __) =>
 				{
 					if (unloaded is not null)
+					{
 						frameworkElement.Unloaded -= unloaded;
+					}
+
 					try
 					{
 						await Task.Yield();
@@ -517,10 +791,14 @@ namespace Microsoft.Maui.DeviceTests
 			{
 				// TabbedPage fires OnNavigated earlier than it should
 				if (page.Parent is TabbedPage)
+				{
 					await Task.Delay(10);
+				}
 
 				if (page is IPageContainer<Page> pc)
+				{
 					await OnNavigatedToAsync(pc.CurrentPage);
+				}
 
 				await Task.Yield();
 
@@ -536,7 +814,9 @@ namespace Microsoft.Maui.DeviceTests
 
 			// TabbedPage fires OnNavigated earlier than it should
 			if (page.Parent is TabbedPage)
+			{
 				await Task.Delay(10);
+			}
 
 			await Task.Yield();
 
@@ -600,7 +880,9 @@ namespace Microsoft.Maui.DeviceTests
 		{
 #if IOS || MACCATALYST
 			if (UIKit.UIAccessibility.IsVoiceOverRunning)
+			{
 				return;
+			}
 
 			var mapperOverride = view.GetRendererOverrides<IView>();
 

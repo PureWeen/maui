@@ -102,7 +102,9 @@ namespace Microsoft.Maui.Graphics
 		public override bool Equals(object obj)
 		{
 			if (obj is Color other)
+			{
 				return ToInt() == other.ToInt();
+			}
 
 			return base.Equals(obj);
 		}
@@ -111,7 +113,9 @@ namespace Microsoft.Maui.Graphics
 		public string ToHex(bool includeAlpha)
 		{
 			if (includeAlpha || Alpha < 1)
+			{
 				return "#" + ToHex(Alpha) + ToHex(Red) + ToHex(Green) + ToHex(Blue);
+			}
 
 			return "#" + ToHex(Red) + ToHex(Green) + ToHex(Blue);
 		}
@@ -124,7 +128,9 @@ namespace Microsoft.Maui.Graphics
 		public string ToArgbHex(bool includeAlpha = false)
 		{
 			if (includeAlpha || Alpha < 1)
+			{
 				return "#" + ToHex(Alpha) + ToHex(Red) + ToHex(Green) + ToHex(Blue);
+			}
 
 			return "#" + ToHex(Red) + ToHex(Green) + ToHex(Blue);
 		}
@@ -132,7 +138,9 @@ namespace Microsoft.Maui.Graphics
 		public string ToRgbaHex(bool includeAlpha = false)
 		{
 			if (includeAlpha || Alpha < 1)
+			{
 				return "#" + ToHex(Red) + ToHex(Green) + ToHex(Blue) + ToHex(Alpha);
+			}
 
 			return "#" + ToHex(Red) + ToHex(Green) + ToHex(Blue);
 		}
@@ -151,7 +159,9 @@ namespace Microsoft.Maui.Graphics
 		public Color WithAlpha(float alpha)
 		{
 			if (Math.Abs(alpha - Alpha) < GeometryUtil.Epsilon)
+			{
 				return this;
+			}
 
 			return new Color(Red, Green, Blue, alpha);
 		}
@@ -166,7 +176,9 @@ namespace Microsoft.Maui.Graphics
 			var intValue = (int)(255f * value);
 			var stringValue = intValue.ToString("X");
 			if (stringValue.Length == 1)
+			{
 				return "0" + stringValue;
+			}
 
 			return stringValue;
 		}
@@ -199,7 +211,10 @@ namespace Microsoft.Maui.Graphics
 			m = Math.Min(m, Blue);
 			var l = (m + v) / 2.0f;
 			if (l <= 0.0)
+			{
 				return 0;
+			}
+
 			return l;
 		}
 
@@ -344,7 +359,9 @@ namespace Microsoft.Maui.Graphics
 			{
 				//Skip # if present
 				if (colorAsHex[0] == '#')
+				{
 					colorAsHex = colorAsHex.Slice(1);
+				}
 
 				if (colorAsHex.Length == 6 || colorAsHex.Length == 3)
 				{
@@ -394,7 +411,9 @@ namespace Microsoft.Maui.Graphics
 			{
 				//Skip # if present
 				if (colorAsHex[0] == '#')
+				{
 					colorAsHex = colorAsHex.Slice(1);
+				}
 
 				if (colorAsHex.Length == 6)
 				{
@@ -495,17 +514,31 @@ namespace Microsoft.Maui.Graphics
 			for (var i = 0; i < 3; i++)
 			{
 				if (t3[i] < 0)
+				{
 					t3[i] += 1.0f;
+				}
+
 				if (t3[i] > 1)
+				{
 					t3[i] -= 1.0f;
+				}
+
 				if (6.0 * t3[i] < 1.0)
+				{
 					clr[i] = temp1 + (temp2 - temp1) * t3[i] * 6.0f;
+				}
 				else if (2.0 * t3[i] < 1.0)
+				{
 					clr[i] = temp2;
+				}
 				else if (3.0 * t3[i] < 2.0)
+				{
 					clr[i] = temp1 + (temp2 - temp1) * (2.0f / 3.0f - t3[i]) * 6.0f;
+				}
 				else
+				{
 					clr[i] = temp1;
+				}
 			}
 
 			r = clr[0];
@@ -578,7 +611,9 @@ namespace Microsoft.Maui.Graphics
 		public static Color Parse(string value)
 		{
 			if (TryParse(value, out var c) && c != default)
+			{
 				return c;
+			}
 
 			throw new InvalidOperationException($"Cannot convert \"{value}\" into {typeof(Color)}");
 		}
@@ -620,7 +655,9 @@ namespace Microsoft.Maui.Graphics
 					valid &= TryParseOpacity(quad3, out double a);
 
 					if (!valid)
+					{
 						goto ReturnFalse;
+					}
 
 					color = new Color((float)r, (float)g, (float)b, (float)a);
 					return true;
@@ -641,7 +678,9 @@ namespace Microsoft.Maui.Graphics
 					valid &= TryParseColorValue(triplet2, 255, acceptPercent: true, out double b);
 
 					if (!valid)
+					{
 						goto ReturnFalse;
+					}
 
 					color = new Color((float)r, (float)g, (float)b);
 					return true;
@@ -664,7 +703,9 @@ namespace Microsoft.Maui.Graphics
 					valid &= TryParseOpacity(quad3, out double a);
 
 					if (!valid)
+					{
 						goto ReturnFalse;
+					}
 
 					color = Color.FromHsla(h, s, l, a);
 					return true;
@@ -685,7 +726,9 @@ namespace Microsoft.Maui.Graphics
 					valid &= TryParseColorValue(triplet2, 100, acceptPercent: true, out double l);
 
 					if (!valid)
+					{
 						goto ReturnFalse;
+					}
 
 					color = Color.FromHsla(h, s, l);
 					return true;
@@ -708,7 +751,9 @@ namespace Microsoft.Maui.Graphics
 					valid &= TryParseOpacity(quad3, out double a);
 
 					if (!valid)
+					{
 						goto ReturnFalse;
+					}
 
 					color = Color.FromHsva((float)h, (float)s, (float)v, (float)a);
 					return true;
@@ -729,7 +774,9 @@ namespace Microsoft.Maui.Graphics
 					valid &= TryParseColorValue(triplet2, 100, acceptPercent: true, out double v);
 
 					if (!valid)
+					{
 						goto ReturnFalse;
+					}
 
 					color = Color.FromHsv((float)h, (float)s, (float)v);
 					return true;
@@ -923,31 +970,44 @@ namespace Microsoft.Maui.Graphics
 			var op = value.IndexOf('(');
 			var cp = value.LastIndexOf(')');
 			if (op < 0 || cp < 0 || cp < op)
+			{
 				goto ReturnFalse;
+			}
 
 			value = value.Slice(op + 1, cp - op - 1);
 
 			int index = value.IndexOf(',');
 			if (index == -1)
+			{
 				goto ReturnFalse;
+			}
+
 			quad0 = value.Slice(0, index);
 			value = value.Slice(index + 1);
 
 			index = value.IndexOf(',');
 			if (index == -1)
+			{
 				goto ReturnFalse;
+			}
+
 			quad1 = value.Slice(0, index);
 			value = value.Slice(index + 1);
 
 			index = value.IndexOf(',');
 			if (index == -1)
+			{
 				goto ReturnFalse;
+			}
+
 			quad2 = value.Slice(0, index);
 			quad3 = value.Slice(index + 1);
 
 			// if there are more commas, fail
 			if (quad3.IndexOf(',') != -1)
+			{
 				goto ReturnFalse;
+			}
 
 			return true;
 
@@ -965,25 +1025,35 @@ namespace Microsoft.Maui.Graphics
 			var op = value.IndexOf('(');
 			var cp = value.LastIndexOf(')');
 			if (op < 0 || cp < 0 || cp < op)
+			{
 				goto ReturnFalse;
+			}
 
 			value = value.Slice(op + 1, cp - op - 1);
 
 			int index = value.IndexOf(',');
 			if (index == -1)
+			{
 				goto ReturnFalse;
+			}
+
 			triplet0 = value.Slice(0, index);
 			value = value.Slice(index + 1);
 
 			index = value.IndexOf(',');
 			if (index == -1)
+			{
 				goto ReturnFalse;
+			}
+
 			triplet1 = value.Slice(0, index);
 			triplet2 = value.Slice(index + 1);
 
 			// if there are more commas, fail
 			if (triplet2.IndexOf(',') != -1)
+			{
 				goto ReturnFalse;
+			}
 
 			return true;
 

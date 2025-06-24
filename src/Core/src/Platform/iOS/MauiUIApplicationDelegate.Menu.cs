@@ -24,7 +24,9 @@ namespace Microsoft.Maui
 			base.BuildMenu(builder);
 
 			if (!OperatingSystem.IsIOSVersionAtLeast(13))
+			{
 				return;
+			}
 
 			MenuBuilder = builder;
 
@@ -60,7 +62,9 @@ namespace Microsoft.Maui
 						}
 					}
 					else
+					{
 						window = activeWindowScenes[0].KeyWindow;
+					}
 				}
 			}
 			else
@@ -77,7 +81,9 @@ namespace Microsoft.Maui
 		public override bool CanPerform(Selector action, NSObject? withSender)
 		{
 			if (action.Name.StartsWith("MenuItem", StringComparison.Ordinal))
+			{
 				return true;
+			}
 
 			return base.CanPerform(action, withSender);
 		}

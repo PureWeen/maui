@@ -9,9 +9,9 @@ namespace Maui.Controls.Sample.Issues
 	{
 		const string PushAutomationId = "PushPageButton";
 		const string InsertAutomationId = "InsertPageButton";
-		const string ReturnAutomationId = "ReturnPageButton"; 
+		const string ReturnAutomationId = "ReturnPageButton";
 		const string FlyoutMainId = "Main";
-		const string FlyoutMainTitle = "Main"; 
+		const string FlyoutMainTitle = "Main";
 		const string FlyoutOtherId = "OtherPage";
 		const string FlyoutOtherTitle = "Other Page";
 
@@ -80,7 +80,9 @@ namespace Maui.Controls.Sample.Issues
 					CurrentItem.CurrentItem = _tabTwo;
 				}
 				else
+				{
 					CurrentItem.CurrentItem = _tabOne;
+				}
 			}
 		}
 	}

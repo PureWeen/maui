@@ -41,10 +41,14 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 		public AView GetCell(Cell item, AView convertView, ViewGroup parent, Context context)
 		{
 			if (item.Parent is View parentView)
+			{
 				ParentView = parentView;
+			}
 
 			if (parent == null && ParentView?.Handler?.PlatformView is ViewGroup platformParent)
+			{
 				parent = platformParent;
+			}
 
 			Performance.Start(out string reference);
 
@@ -75,9 +79,13 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 
 			var holder = view.Tag as RendererHolder;
 			if (holder == null)
+			{
 				view.Tag = new RendererHolder(this);
+			}
 			else
+			{
 				holder.Renderer = this;
+			}
 
 			Cell.PropertyChanged += PropertyChangedHandler;
 			((ICellController)Cell).SendAppearing();
@@ -117,7 +125,9 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			_onForceUpdateSizeRequested = (sender, e) =>
 			{
 				if (platformCell.Handle == IntPtr.Zero)
+				{
 					return;
+				}
 				// RenderHeight may not be changed, but that's okay, since we
 				// don't actually use the height argument in the OnMeasure override.
 				platformCell.Measure(platformCell.Width, (int)cell.RenderHeight);

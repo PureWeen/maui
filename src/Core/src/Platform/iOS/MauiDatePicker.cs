@@ -42,7 +42,9 @@ namespace Microsoft.Maui.Platform
 		static void OnDoneClicked(object obj)
 		{
 			if (obj is MauiDatePicker mdp)
+			{
 				mdp.MauiDatePickerDelegate?.DoneClicked();
+			}
 		}
 
 		void OnEnded(object? sender, EventArgs e) =>
@@ -57,7 +59,7 @@ namespace Microsoft.Maui.Platform
 			set => _proxy.MauiDatePickerDelegate = value;
 		}
 
-		internal UIDatePicker? DatePickerDialog { get { return InputView as UIDatePicker; } }
+		internal static UIDatePicker? DatePickerDialog { get { return InputView as UIDatePicker; } }
 
 		class UIDatePickerProxy
 		{

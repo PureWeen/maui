@@ -26,7 +26,9 @@ namespace Microsoft.Maui.Controls.Platform
 					toolbar.Handler.UpdateValue(nameof(Toolbar.IconColor));
 				}
 				else
+				{
 					platformToolbar.TitleIconImageSource = null;
+				}
 			});
 		}
 
@@ -80,7 +82,9 @@ namespace Microsoft.Maui.Controls.Platform
 		public static void UpdateToolbarDynamicOverflowEnabled(this MauiToolbar platformToolbar, Toolbar toolbar)
 		{
 			if (platformToolbar.CommandBar == null)
+			{
 				return;
+			}
 
 			platformToolbar.CommandBar.IsDynamicOverflowEnabled = toolbar.DynamicOverflowEnabled;
 		}

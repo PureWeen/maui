@@ -93,7 +93,9 @@ namespace Microsoft.Maui.Devices.Sensors
 		public Location(Location point)
 		{
 			if (point == null)
+			{
 				throw new ArgumentNullException(nameof(point));
+			}
 
 			Latitude = point.Latitude;
 			Longitude = point.Longitude;
@@ -247,9 +249,15 @@ namespace Microsoft.Maui.Devices.Sensors
 		public override bool Equals(object obj)
 		{
 			if (obj is null)
+			{
 				return false;
+			}
+
 			if (obj.GetType() != GetType())
+			{
 				return false;
+			}
+
 			var other = (Location)obj;
 			return Latitude == other.Latitude && Longitude == other.Longitude;
 		}
