@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"
+             x:Class="Maui.Controls.Sample.Issues.Issue6995MainPage"
+             Title="Main Page">
+    <StackLayout Padding="20" Spacing="20">
+        <Label Text="Issue 6995: Modal FormSheet dismiss attempt not cancellable on Shell" 
+               FontSize="16" 
+               HorizontalOptions="Center" />
+        
+        <Label Text="This test verifies that when a FormSheet modal is presented with isModalInPresentation=true, and the user attempts to swipe down to dismiss it, the app can detect this dismiss attempt." 
+               FontSize="14"
+               HorizontalOptions="Center" />
+        
+        <Button Text="Open FormSheet Modal" 
+                AutomationId="OpenModalButton"
+                Clicked="OnOpenModalClicked" />
+        
+        <Label x:Name="ResultLabel"
+               Text="No modal presented yet"
+               AutomationId="ResultLabel"
+               HorizontalOptions="Center" />
+    </StackLayout>
+</ContentPage>

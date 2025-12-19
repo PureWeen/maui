@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Shell
+    x:Class="Maui.Controls.Sample.Issues.Issue6995"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Maui.Controls.Sample.Issues"
+    Shell.FlyoutBehavior="Disabled"
+    Title="Issue 6995">
+
+    <ShellContent
+        Title="Home"
+        ContentTemplate="{DataTemplate local:Issue6995MainPage}"
+        Route="MainPage" />
+</Shell>
