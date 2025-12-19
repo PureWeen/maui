@@ -783,6 +783,12 @@ namespace Microsoft.Maui.Controls
 			(this as IPageContainer<Page>)?.CurrentPage?.SendNavigatingFrom(args);
 		}
 
+		internal ModalDismissAttemptedEventArgs SendModalDismissAttempted()
+		{
+			var args = new ModalDismissAttemptedEventArgs();
+			return OnModalDismissAttempted(args);
+		}
+
 		internal void SendNavigatedFrom(NavigatedFromEventArgs args, bool disconnectHandlers = true)
 		{
 			HasNavigatedTo = false;
@@ -839,6 +845,12 @@ namespace Microsoft.Maui.Controls
 		public event EventHandler<NavigatedFromEventArgs> NavigatedFrom;
 
 		/// <summary>
+		/// Raised when a user attempts to dismiss a modal page. On iOS, this is triggered when the user
+		/// attempts to dismiss a FormSheet or PageSheet modal by swiping down or tapping outside.
+		/// </summary>
+		public event EventHandler<ModalDismissAttemptedEventArgs> ModalDismissAttempted;
+
+		/// <summary>
 		/// When overridden in a derived class, allows application developers to customize behavior immediately after the page was navigated to.
 		/// </summary>
 		/// <param name="args">The event arguments.</param>
@@ -855,6 +867,17 @@ namespace Microsoft.Maui.Controls
 		/// </summary>
 		/// <param name="args">The event arguments.</param>
 		protected virtual void OnNavigatedFrom(NavigatedFromEventArgs args) { }
+
+		/// <summary>
+		/// When overridden in a derived class, allows application developers to customize behavior when a user attempts to dismiss a modal page.
+		/// </summary>
+		/// <param name="args">The event arguments. Set <see cref="ModalDismissAttemptedEventArgs.Cancel"/> to <c>true</c> to prevent dismissal.</param>
+		/// <returns>The event arguments after processing.</returns>
+		protected virtual ModalDismissAttemptedEventArgs OnModalDismissAttempted(ModalDismissAttemptedEventArgs args)
+		{
+			ModalDismissAttempted?.Invoke(this, args);
+			return args;
+		}
 
 		/// <summary>
 		/// Retrieves the parent window that contains the page.

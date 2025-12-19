@@ -73,6 +73,24 @@ namespace Microsoft.Maui.Controls.Platform
 				page.PropertyChanged += OnModalPagePropertyChanged;
 		}
 
+		[Export("presentationControllerDidAttemptToDismiss:")]
+		[Microsoft.Maui.Controls.Internals.Preserve(Conditional = true)]
+		public void DidAttemptToDismiss(UIPresentationController presentationController)
+		{
+			// Notify the page that a dismiss attempt occurred
+			var args = Page.SendModalDismissAttempted();
+
+			// If the developer cancelled the dismissal, we need to prevent it
+			// by not doing anything here. The dismissal is already prevented by
+			// iOS when the delegate method returns without calling dismiss.
+			if (!args.Cancel)
+			{
+				// If not cancelled, allow the dismissal to proceed
+				// by programmatically dismissing the view controller
+				presentationController.PresentedViewController.DismissViewController(true, null);
+			}
+		}
+
 		[Export("presentationControllerDidDismiss:")]
 		[Microsoft.Maui.Controls.Internals.Preserve(Conditional = true)]
 		public void DidDismiss(UIPresentationController _)
