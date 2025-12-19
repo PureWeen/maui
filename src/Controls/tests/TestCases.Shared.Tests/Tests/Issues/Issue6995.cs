@@ -10,7 +10,7 @@ public class Issue6995 : _IssuesUITest
 	{
 	}
 
-	public override string Issue => "[iOS] Modal Formsheet on iOS is currently not cancellable on Shell";
+	public override string Issue => "[iOS] Modal FormSheet on iOS is currently not cancellable on Shell";
 
 	[Test]
 	[Category(UITestCategories.Shell)]
@@ -46,7 +46,7 @@ public class Issue6995 : _IssuesUITest
 		App.ScrollDown("DismissAttemptLabel");
 
 		// Wait a moment for the gesture to be processed
-		Task.Delay(500).Wait();
+		Thread.Sleep(500);
 
 		// Check if the dismiss attempt was detected
 		// BUG: Currently this will still show "Dismiss attempts: 0" because
