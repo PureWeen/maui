@@ -4,6 +4,7 @@ description: Specialized skill for investigating and resolving community-reporte
 license: MIT
 metadata:
   version: "1.0"
+  author: dotnet-maui-team
   repository: dotnet/maui
 ---
 

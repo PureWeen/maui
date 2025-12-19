@@ -4,6 +4,7 @@ description: Specialized skill for working with the .NET MAUI Sandbox app for te
 license: MIT
 metadata:
   version: "1.0"
+  author: dotnet-maui-team
   repository: dotnet/maui
 ---
 

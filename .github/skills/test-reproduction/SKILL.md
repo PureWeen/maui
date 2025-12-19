@@ -4,6 +4,7 @@ description: Specialized skill for creating reproduction tests for .NET MAUI iss
 license: MIT
 metadata:
   version: "1.0"
+  author: dotnet-maui-team
   repository: dotnet/maui
 ---
 
