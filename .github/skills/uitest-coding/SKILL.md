@@ -61,6 +61,11 @@ pwsh .github/scripts/BuildAndRunHostApp.ps1 -Platform [android|ios|maccatalyst] 
 
 ## File Templates
 
+This skill includes templates at `.github/skills/uitest-coding/templates/`:
+- `IssueTemplate.xaml.template` - XAML page boilerplate
+- `IssueTemplate.xaml.cs.template` - Code-behind boilerplate
+- `IssueNUnitTest.cs.template` - NUnit test boilerplate
+
 ### HostApp XAML (`IssueXXXXX.xaml`)
 
 ```xml

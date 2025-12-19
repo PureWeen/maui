@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Maui.Controls.Sample.Issues.Issue{{ISSUE_NUMBER}}"
+             Title="Issue {{ISSUE_NUMBER}} - {{ISSUE_DESCRIPTION}}">
+
+    <StackLayout Padding="20">
+        <!-- Instructions for testing -->
+        <Label Text="{{ISSUE_DESCRIPTION}}"
+               FontSize="16"
+               Margin="0,0,0,20"/>
+        
+        <!-- Main test UI - customize as needed -->
+        <Button x:Name="TestButton"
+                AutomationId="TestButton"
+                Text="Trigger Action"
+                Clicked="OnButtonClicked"
+                Margin="0,0,0,10"/>
+        
+        <Label x:Name="ResultLabel"
+               AutomationId="ResultLabel"
+               Text="Waiting for action..."
+               FontSize="14"/>
+    </StackLayout>
+</ContentPage>

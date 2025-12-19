@@ -154,20 +154,23 @@ For skills that would benefit from bundled files:
 ```
 .github/skills/sandbox-testing/
 ├── SKILL.md
-├── RunWithAppiumTest.template.cs    # Appium test template
-└── validation-checklist.md          # Validation rules
+└── templates/
+    └── RunWithAppiumTest.template.cs    # Appium test template (skill-specific)
 ```
 
 **uitest-coding/:**
 ```
 .github/skills/uitest-coding/
 ├── SKILL.md
-├── templates/
-│   ├── HostAppPage.xaml.template
-│   ├── HostAppPage.cs.template
-│   └── NUnitTest.cs.template
-└── categories-reference.md
+└── templates/
+    ├── IssueTemplate.xaml.template       # XAML page boilerplate
+    ├── IssueTemplate.xaml.cs.template    # Code-behind boilerplate
+    └── IssueNUnitTest.cs.template        # NUnit test boilerplate
 ```
+
+**Template Organization Principle:**
+- Templates used by **only one skill** → Put in that skill's `templates/` folder
+- Scripts used by **multiple skills** → Keep in `.github/scripts/` (shared infrastructure)
 
 ### Step 4: Update copilot-instructions.md
 

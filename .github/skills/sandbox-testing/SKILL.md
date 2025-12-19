@@ -95,8 +95,10 @@ gh pr checkout <PR_NUMBER>
 
 ```bash
 mkdir -p CustomAgentLogsTmp/Sandbox
-cp .github/scripts/templates/RunWithAppiumTest.template.cs CustomAgentLogsTmp/Sandbox/RunWithAppiumTest.cs
+cp .github/skills/sandbox-testing/templates/RunWithAppiumTest.template.cs CustomAgentLogsTmp/Sandbox/RunWithAppiumTest.cs
 ```
+
+**Template location:** This skill includes the Appium test template at `.github/skills/sandbox-testing/templates/RunWithAppiumTest.template.cs`
 
 Then update `RunWithAppiumTest.cs` to match your MainPage AutomationIds.
 
