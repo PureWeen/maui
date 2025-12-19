@@ -1146,5 +1146,203 @@ namespace Microsoft.Maui.DeviceTests
 				action?.Invoke(value);
 				return value;
 			});
+
+		[Fact(DisplayName = "OnNavigatedTo Fires on Initial Shell Page")]
+		public async Task OnNavigatedToFiresOnInitialShellPage()
+		{
+			SetupBuilder();
+
+			var page = new LifeCycleTrackingPage() { Content = new Label() { Text = "Initial Page" } };
+
+			var shell = await CreateShellAsync(shell =>
+			{
+				shell.Items.Add(new TabBar()
+				{
+					Items =
+					{
+						new ShellContent()
+						{
+							ContentTemplate = new DataTemplate(() => page)
+						}
+					}
+				});
+			});
+
+			await CreateHandlerAndAddToWindow<ShellHandler>(shell, async (handler) =>
+			{
+				await OnNavigatedToAsync(page);
+
+				// Verify OnNavigatedTo fired
+				Assert.Equal(1, page.OnNavigatedToCount);
+				Assert.NotNull(page.NavigatedToArgs);
+			});
+		}
+
+		[Fact(DisplayName = "OnNavigatedTo Fires When Navigating Between Shell Tabs")]
+		public async Task OnNavigatedToFiresWhenNavigatingBetweenShellTabs()
+		{
+			SetupBuilder();
+
+			var page1 = new LifeCycleTrackingPage() { Content = new Label() { Text = "Page 1" } };
+			var page2 = new LifeCycleTrackingPage() { Content = new Label() { Text = "Page 2" } };
+
+			var shell = await CreateShellAsync(shell =>
+			{
+				shell.Items.Add(new TabBar()
+				{
+					Items =
+					{
+						new ShellContent()
+						{
+							Title = "Tab 1",
+							Route = "Tab1",
+							Content = page1
+						},
+						new ShellContent()
+						{
+							Title = "Tab 2",
+							Route = "Tab2",
+							Content = page2
+						}
+					}
+				});
+			});
+
+			await CreateHandlerAndAddToWindow<ShellHandler>(shell, async (handler) =>
+			{
+				// Wait for initial page navigation
+				await OnNavigatedToAsync(page1);
+
+				// Verify initial page received OnNavigatedTo
+				Assert.Equal(1, page1.OnNavigatedToCount);
+				Assert.NotNull(page1.NavigatedToArgs);
+
+				// Verify second page hasn't received OnNavigatedTo yet
+				Assert.Equal(0, page2.OnNavigatedToCount);
+
+				// Navigate to second tab
+				await shell.GoToAsync("//Tab2");
+				await OnNavigatedToAsync(page2);
+
+				// Verify second page received OnNavigatedTo
+				Assert.Equal(1, page2.OnNavigatedToCount);
+				Assert.NotNull(page2.NavigatedToArgs);
+			});
+		}
+
+		[Fact(DisplayName = "OnNavigatedTo Fires When Pushing Pages via Shell Navigation")]
+		public async Task OnNavigatedToFiresWhenPushingPagesViaShellNavigation()
+		{
+			SetupBuilder();
+
+			var rootPage = new LifeCycleTrackingPage() { Content = new Label() { Text = "Root Page" } };
+			var pushedPage = new LifeCycleTrackingPage() { Content = new Label() { Text = "Pushed Page" } };
+
+			var shell = await CreateShellAsync(shell =>
+			{
+				shell.Items.Add(new TabBar()
+				{
+					Items =
+					{
+						new ShellContent()
+						{
+							Content = rootPage
+						}
+					}
+				});
+			});
+
+			await CreateHandlerAndAddToWindow<ShellHandler>(shell, async (handler) =>
+			{
+				// Wait for initial page navigation
+				await OnNavigatedToAsync(rootPage);
+
+				// Verify root page received OnNavigatedTo
+				Assert.Equal(1, rootPage.OnNavigatedToCount);
+				Assert.NotNull(rootPage.NavigatedToArgs);
+
+				// Verify pushed page hasn't received OnNavigatedTo yet
+				Assert.Equal(0, pushedPage.OnNavigatedToCount);
+
+				// Push a new page
+				await shell.Navigation.PushAsync(pushedPage);
+				await OnNavigatedToAsync(pushedPage);
+
+				// Verify pushed page received OnNavigatedTo
+				Assert.Equal(1, pushedPage.OnNavigatedToCount);
+				Assert.NotNull(pushedPage.NavigatedToArgs);
+			});
+		}
+
+		[Fact(DisplayName = "Loaded Fires on Shell Pages")]
+		public async Task LoadedFiresOnShellPages()
+		{
+			SetupBuilder();
+
+			var page = new ContentPage() { Content = new Label() { Text = "Test Page" } };
+			int loadedCount = 0;
+
+			page.Loaded += (_, _) => loadedCount++;
+
+			var shell = await CreateShellAsync(shell =>
+			{
+				shell.Items.Add(new TabBar()
+				{
+					Items =
+					{
+						new ShellContent()
+						{
+							ContentTemplate = new DataTemplate(() => page)
+						}
+					}
+				});
+			});
+
+			await CreateHandlerAndAddToWindow<ShellHandler>(shell, async (handler) =>
+			{
+				await OnLoadedAsync(page);
+				await OnNavigatedToAsync(page);
+
+				// Verify Loaded event fired
+				Assert.Equal(1, loadedCount);
+			});
+		}
+
+		[Fact(DisplayName = "Loaded Fires Before NavigatedTo on Shell Pages")]
+		public async Task LoadedFiresBeforeNavigatedToOnShellPages()
+		{
+			SetupBuilder();
+
+			var page = new ContentPage() { Content = new Label() { Text = "Test Page" } };
+			int loadedCount = 0;
+			bool loadedFiredBeforeNavigatedTo = false;
+
+			page.Loaded += (_, _) => loadedCount++;
+			page.NavigatedTo += (_, _) => loadedFiredBeforeNavigatedTo = (loadedCount == 1);
+
+			var shell = await CreateShellAsync(shell =>
+			{
+				shell.Items.Add(new TabBar()
+				{
+					Items =
+					{
+						new ShellContent()
+						{
+							ContentTemplate = new DataTemplate(() => page)
+						}
+					}
+				});
+			});
+
+			await CreateHandlerAndAddToWindow<ShellHandler>(shell, async (handler) =>
+			{
+				await OnLoadedAsync(page);
+				await OnNavigatedToAsync(page);
+
+				// Verify Loaded fired before NavigatedTo
+				Assert.True(loadedFiredBeforeNavigatedTo, "Loaded should fire before NavigatedTo");
+				Assert.Equal(1, loadedCount);
+			});
+		}
 	}
 }
