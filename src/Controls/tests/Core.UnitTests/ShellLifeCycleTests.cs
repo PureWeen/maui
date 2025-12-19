@@ -541,10 +541,187 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			shell.TestCount(1);
 		}
 
+		// https://github.com/dotnet/maui/issues/11241
+		[Fact]
+		public void OnNavigatedToFiresForInitialShellPage()
+		{
+			Shell shell = new TestShell();
+			LifeCyclePage page = new LifeCyclePage();
+			shell.Items.Add(CreateShellItem(page: page));
+
+			Assert.NotNull(page.NavigatedToArgs);
+			Assert.Equal(1, page.NavigatedToCount);
+			Assert.Null(page.NavigatedToArgs.PreviousPage);
+		}
+
+		// https://github.com/dotnet/maui/issues/11241
+		[Fact]
+		public void OnNavigatedToFiresForInitialShellPageWithTemplate()
+		{
+			Shell shell = new TestShell();
+			LifeCyclePage page = new LifeCyclePage();
+			var shellContent = new ShellContent() { ContentTemplate = new DataTemplate(() => page) };
+			var tab = new Tab();
+			var flyoutItem = new FlyoutItem();
+
+			flyoutItem.Items.Add(tab);
+			tab.Items.Add(shellContent);
+			shell.Items.Add(flyoutItem);
+
+			// Force content creation
+			var createdContent = (shellContent as IShellContentController).GetOrCreateContent();
+
+			Assert.NotNull(page.NavigatedToArgs);
+			Assert.Equal(1, page.NavigatedToCount);
+			Assert.Null(page.NavigatedToArgs.PreviousPage);
+		}
+
+		// https://github.com/dotnet/maui/issues/11241
+		[Fact]
+		public async Task OnNavigatedToFiresWhenNavigatingBetweenShellItems()
+		{
+			Shell shell = new TestShell();
+			LifeCyclePage page1 = new LifeCyclePage();
+			LifeCyclePage page2 = new LifeCyclePage();
+
+			shell.Items.Add(CreateShellItem(page: page1, shellItemRoute: "item1"));
+			shell.Items.Add(CreateShellItem(page: page2, shellItemRoute: "item2"));
+
+			// First page should have OnNavigatedTo fired
+			Assert.NotNull(page1.NavigatedToArgs);
+			Assert.Equal(1, page1.NavigatedToCount);
+
+			// Second page should not have OnNavigatedTo fired yet
+			Assert.Null(page2.NavigatedToArgs);
+			Assert.Equal(0, page2.NavigatedToCount);
+
+			// Navigate to second item
+			await shell.GoToAsync("//item2");
+
+			// Second page should now have OnNavigatedTo fired
+			Assert.NotNull(page2.NavigatedToArgs);
+			Assert.Equal(1, page2.NavigatedToCount);
+			Assert.Equal(page1, page2.NavigatedToArgs.PreviousPage);
+		}
+
+		// https://github.com/dotnet/maui/issues/11241
+		[Fact]
+		public async Task OnNavigatedToFiresWhenNavigatingBetweenShellSections()
+		{
+			Shell shell = new TestShell();
+			LifeCyclePage page1 = new LifeCyclePage();
+			LifeCyclePage page2 = new LifeCyclePage();
+
+			var item = CreateShellItem(page: page1, shellSectionRoute: "section1", shellItemRoute: "item");
+			var section2 = CreateShellSection(page: page2, shellSectionRoute: "section2");
+			item.Items.Add(section2);
+			shell.Items.Add(item);
+
+			// First page should have OnNavigatedTo fired
+			Assert.NotNull(page1.NavigatedToArgs);
+			Assert.Equal(1, page1.NavigatedToCount);
+
+			// Second page should not have OnNavigatedTo fired yet
+			Assert.Null(page2.NavigatedToArgs);
+			Assert.Equal(0, page2.NavigatedToCount);
+
+			// Navigate to second section
+			await shell.GoToAsync("//section2");
+
+			// Second page should now have OnNavigatedTo fired
+			Assert.NotNull(page2.NavigatedToArgs);
+			Assert.Equal(1, page2.NavigatedToCount);
+			Assert.Equal(page1, page2.NavigatedToArgs.PreviousPage);
+		}
+
+		// https://github.com/dotnet/maui/issues/11241
+		[Fact]
+		public async Task OnNavigatedToFiresWhenNavigatingBetweenShellContents()
+		{
+			Shell shell = new TestShell();
+			LifeCyclePage page1 = new LifeCyclePage();
+			LifeCyclePage page2 = new LifeCyclePage();
+
+			var section = CreateShellSection(page: page1, shellContentRoute: "content1", shellSectionRoute: "section");
+			var content2 = CreateShellContent(page: page2, shellContentRoute: "content2");
+			section.Items.Add(content2);
+
+			shell.Items.Add(CreateShellItem<FlyoutItem>(shellItemRoute: "item"));
+			shell.Items[0].Items.Clear();
+			shell.Items[0].Items.Add(section);
+
+			// First page should have OnNavigatedTo fired
+			Assert.NotNull(page1.NavigatedToArgs);
+			Assert.Equal(1, page1.NavigatedToCount);
+
+			// Second page should not have OnNavigatedTo fired yet
+			Assert.Null(page2.NavigatedToArgs);
+			Assert.Equal(0, page2.NavigatedToCount);
+
+			// Navigate to second content
+			await shell.GoToAsync("//content2");
+
+			// Second page should now have OnNavigatedTo fired
+			Assert.NotNull(page2.NavigatedToArgs);
+			Assert.Equal(1, page2.NavigatedToCount);
+			Assert.Equal(page1, page2.NavigatedToArgs.PreviousPage);
+		}
+
+		// https://github.com/dotnet/maui/issues/11241
+		[Fact]
+		public async Task OnNavigatedToFiresWhenPushingPage()
+		{
+			Shell shell = new TestShell();
+			LifeCyclePage rootPage = new LifeCyclePage();
+			LifeCyclePage pushedPage = new LifeCyclePage();
+
+			shell.Items.Add(CreateShellItem(page: rootPage));
+
+			// Root page should have OnNavigatedTo fired
+			Assert.NotNull(rootPage.NavigatedToArgs);
+			Assert.Equal(1, rootPage.NavigatedToCount);
+
+			// Push a new page
+			await shell.Navigation.PushAsync(pushedPage);
+
+			// Pushed page should have OnNavigatedTo fired
+			Assert.NotNull(pushedPage.NavigatedToArgs);
+			Assert.Equal(1, pushedPage.NavigatedToCount);
+			Assert.Equal(rootPage, pushedPage.NavigatedToArgs.PreviousPage);
+		}
+
+		// https://github.com/dotnet/maui/issues/11241
+		[Fact]
+		public async Task OnNavigatedToFiresWhenPoppingPage()
+		{
+			Shell shell = new TestShell();
+			LifeCyclePage rootPage = new LifeCyclePage();
+			LifeCyclePage pushedPage = new LifeCyclePage();
+
+			shell.Items.Add(CreateShellItem(page: rootPage));
+
+			// Push a new page
+			await shell.Navigation.PushAsync(pushedPage);
+
+			// Reset counts to check pop behavior
+			rootPage.NavigatedToCount = 0;
+			rootPage.NavigatedToArgs = null;
+
+			// Pop the page
+			await shell.Navigation.PopAsync();
+
+			// Root page should have OnNavigatedTo fired again
+			Assert.NotNull(rootPage.NavigatedToArgs);
+			Assert.Equal(1, rootPage.NavigatedToCount);
+			Assert.Equal(pushedPage, rootPage.NavigatedToArgs.PreviousPage);
+		}
+
 		public class LifeCyclePage : ContentPage
 		{
 			public bool Appearing;
 			public bool ParentSet;
+			public NavigatedToEventArgs NavigatedToArgs;
+			public int NavigatedToCount;
 			public Task AppearingTask => _appearingTaskCompletionSource.Task.WaitAsync(TimeSpan.FromSeconds(5));
 			TaskCompletionSource<bool> _appearingTaskCompletionSource = new TaskCompletionSource<bool>();
 
@@ -560,6 +737,13 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			{
 				base.OnParentSet();
 				ParentSet = true;
+			}
+
+			protected override void OnNavigatedTo(NavigatedToEventArgs args)
+			{
+				base.OnNavigatedTo(args);
+				NavigatedToArgs = args;
+				NavigatedToCount++;
 			}
 		}
 
