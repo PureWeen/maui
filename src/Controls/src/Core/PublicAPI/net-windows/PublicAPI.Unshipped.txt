@@ -1,1 +1,7 @@
 #nullable enable
+Microsoft.Maui.Controls.ModalDismissAttemptedEventArgs
+Microsoft.Maui.Controls.ModalDismissAttemptedEventArgs.Cancel.get -> bool
+Microsoft.Maui.Controls.ModalDismissAttemptedEventArgs.Cancel.set -> void
+Microsoft.Maui.Controls.ModalDismissAttemptedEventArgs.ModalDismissAttemptedEventArgs() -> void
+Microsoft.Maui.Controls.Page.ModalDismissAttempted -> System.EventHandler<Microsoft.Maui.Controls.ModalDismissAttemptedEventArgs!>!
+~virtual Microsoft.Maui.Controls.Page.OnModalDismissAttempted(Microsoft.Maui.Controls.ModalDismissAttemptedEventArgs! args) -> Microsoft.Maui.Controls.ModalDismissAttemptedEventArgs!

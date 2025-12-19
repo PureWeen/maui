@@ -20,16 +20,19 @@ namespace Maui.Controls.Sample.Issues
 			var modalPage = new FormSheetModalPage();
 			
 			// Subscribe to the ModalDismissAttempted event
+			// This event is raised when the user attempts to dismiss a modal page (e.g., by swiping down on iOS)
 			modalPage.ModalDismissAttempted += (s, args) =>
 			{
 				_dismissAttemptCount++;
 				DismissAttemptLabel.Text = $"Dismiss attempts: {_dismissAttemptCount}";
 				
-				// For testing, we'll allow dismissal after 2 attempts
+				// Example: Prevent dismissal for the first attempt
+				// Set args.Cancel = true to prevent the modal from being dismissed
 				if (_dismissAttemptCount < 2)
 				{
 					args.Cancel = true;
 				}
+				// After the second attempt, the modal will be allowed to dismiss
 			};
 
 #if IOS || MACCATALYST
