@@ -1,10 +1,9 @@
 ---
 name: issue-fix
 description: >
-  Implement fixes for .NET MAUI issues after reproduction is confirmed. 
-  Use this skill when asked to "proceed with fix", "implement fix for #XXXXX", 
-  or "fix the issue" after reproduction testing is complete.
-  This skill assumes a reproduction test already exists and FAILS.
+  Implements fixes for .NET MAUI issues that have existing failing reproduction tests.
+  Use when asked to "implement fix", "proceed with fix", or "fix the issue" after reproduction exists.
+  This skill assumes a reproduction test already exists and FAILS - it provides fix methodology.
 license: MIT
 metadata:
   version: "1.0"
@@ -16,30 +15,23 @@ metadata:
 
 You are a specialized fix implementation skill for the .NET MAUI repository. Your role is to implement fixes for issues that have confirmed reproduction tests.
 
-## When to Use This Skill
+## Purpose
 
-- ✅ "Proceed with fix for issue #XXXXX"
-- ✅ "Implement the fix"
-- ✅ "Fix the issue" (after reproduction is confirmed)
-- ✅ "Continue with implementation"
+This skill provides **detailed domain knowledge** for implementing fixes:
+- Root cause investigation methodology
+- Fix design patterns
+- Build and test commands
+- PR preparation guidelines
+- Success criteria (test must PASS after fix)
 
-## When NOT to Use This Skill
-
-- ❌ "Fix issue #XXXXX" (fresh start) → Use `issue-reproduction` skill first
-- ❌ "Investigate issue" → Use `issue-reproduction` skill first
-- ❌ No reproduction test exists → Use `issue-reproduction` skill first
-
----
-
-## 🛑 PREREQUISITE: Reproduction Must Exist
+## Prerequisite: Reproduction Must Exist
 
 **Before using this skill, ensure:**
-1. A reproduction test exists that FAILS (proving the bug)
-2. The user has confirmed the reproduction is correct
-3. The issue-reproduction skill has completed
+- A reproduction test exists that FAILS (proving the bug)
+- The reproduction has been confirmed
 
-**If no reproduction exists, stop and tell the user:**
-> "No reproduction test found. Please run the issue-reproduction skill first."
+**If no reproduction exists:**
+> "No reproduction test found. Create a reproduction test first."
 
 ---
 

@@ -2,15 +2,41 @@
 
 ## Executive Summary
 
-This document provides recommendations for migrating the existing `.github/agents/` custom agents to the new GitHub Copilot Skills feature (`.github/skills/`). The key insight is using **skill separation** and **`allowed-tools`** to enforce workflow checkpoints architecturally rather than advisory.
+This document provides recommendations for the new GitHub Copilot Skills architecture. The key insight is using a **lightweight agent as controller** with **skills as implementation**, plus **skill separation** to enforce workflow checkpoints architecturally.
 
 ---
 
-## Skills Architecture
+## Architecture: Agent as Controller + Skills as Implementation
 
-### Two-Phase Issue Resolution
+### Key Insight
 
-The single `issue-resolver` agent is split into two skills to enforce the checkpoint between reproduction and fixing:
+Custom agents cannot programmatically invoke skills. However, the **language used in an agent's instructions** influences which skills Copilot loads via its semantic matching. We exploit this by having the agent output specific task descriptions that trigger skill discovery.
+
+### Design Pattern
+
+```
+issue-resolver.agent.md (small, always loaded)
+├── Binary checkpoint: "Does failing test exist?"
+├── NO  → outputs "create reproduction test" → triggers issue-reproduction skill
+└── YES → outputs "implement fix" → triggers issue-fix skill
+
+.github/skills/
+├── issue-reproduction/SKILL.md (detailed test creation instructions)
+└── issue-fix/SKILL.md (detailed fix implementation instructions)
+```
+
+### Why This Approach
+
+1. **Checkpoint enforcement**: The agent is always loaded when invoked, so the binary gate always runs
+2. **Efficient context**: Skills only load when Copilot's discovery matches them to the task
+3. **Implicit routing**: The gate's output language ("create reproduction test" vs "implement fix") triggers the appropriate skill
+4. **Separation of concerns**: Agent handles control flow, skills handle domain knowledge
+
+---
+
+## Two-Phase Issue Resolution
+
+The workflow is enforced by skill boundaries:
 
 | Skill | Purpose | Key Constraint |
 |-------|---------|----------------|

@@ -1,10 +1,9 @@
 ---
 name: issue-reproduction
 description: >
-  Create reproduction tests for .NET MAUI issues. Use this skill when asked to 
-  "fix issue #XXXXX", "investigate issue", "reproduce bug", or "work on issue #XXXXX".
-  This skill creates tests that prove the bug exists - it does NOT implement fixes.
-  After reproduction is confirmed, invoke the issue-fix skill to implement the solution.
+  Creates failing tests that reproduce .NET MAUI issues. Use when creating reproduction tests,
+  when asked to "reproduce bug", "create reproduction test", or when no test exists for an issue.
+  This skill provides detailed test creation methodology - it does NOT implement fixes.
 license: MIT
 metadata:
   version: "1.0"
@@ -16,98 +15,77 @@ metadata:
 
 You are a specialized reproduction testing skill for the .NET MAUI repository. Your role is to create tests that prove a reported bug exists.
 
-## When to Use This Skill
+## Purpose
 
-- ✅ "Fix issue #12345" - Start here, create reproduction first
-- ✅ "Investigate issue #XXXXX"
-- ✅ "Reproduce bug #XXXXX"
-- ✅ "Work on issue #XXXXX"
-
-## When NOT to Use This Skill
-
-- ❌ "Proceed with fix" or "implement the fix" → Use `issue-fix` skill
-- ❌ "Test this PR" → Use `pr-reviewer` skill
-- ❌ "Write UI tests" (not for a bug) → Use `uitest-coding` skill
-
----
+This skill provides **detailed domain knowledge** for creating reproduction tests:
+- Test file locations and naming conventions
+- Unit test vs UI test decision rules
+- Test patterns and templates
+- Build and run commands
+- Success criteria (test must FAIL)
 
 ## 🛑 CRITICAL: This Skill Does NOT Fix Issues
 
 **This skill ONLY:**
-1. Reads and understands the issue
-2. Creates a reproduction test that FAILS (proving the bug exists)
-3. Verifies the test actually reproduces the issue
-4. Stops and waits for user to invoke `issue-fix` skill
+1. Creates a reproduction test that FAILS (proving the bug exists)
+2. Verifies the test actually reproduces the issue
+3. Reports completion and waits for fix phase
 
 **This skill NEVER:**
 - Implements fixes to source code
 - Modifies handler code, control code, or platform code
-- Creates PRs with fixes
 
 ---
 
 ## Workflow
 
 ```
-1. Fetch issue - read description and ALL comments
-2. Create initial assessment - show user before starting
-3. Create reproduction test - unit test (preferred) or UI test
+1. Understand the issue (from context provided)
+2. Decide test type - unit test (preferred) or UI test
+3. Create reproduction test following conventions
 4. Run test and verify it FAILS (proves bug exists)
-5. 🛑 STOP - Report reproduction complete, wait for user to invoke issue-fix skill
+5. Report reproduction complete
 ```
 
 ---
 
-## Step 1: Fetch Issue
-
-```bash
-# Fetch GitHub issue
-ISSUE_NUM=XXXXX  # Replace with actual number
-echo "Fetching: https://github.com/dotnet/maui/issues/$ISSUE_NUM"
-```
-
-**Read thoroughly:**
-- Issue description
-- ALL comments (additional details, workarounds, platform info)
-- Screenshots/code samples
-- Affected platforms (iOS, Android, Windows, Mac, All)
-
----
-
-## Step 2: Create Initial Assessment
-
-**Before starting any work, show user this assessment:**
-
-```markdown
-## Issue Reproduction Assessment - Issue #XXXXX
-
-**Issue Summary**: [Brief description of reported problem]
-
-**Affected Platforms**: [iOS/Android/Windows/Mac/All]
-
-**Reproduction Strategy**:
-- **Type**: [Unit test (preferred) | UI test (if UI interaction required)]
-- **Location**: [Test project and file path]
-- **Scenario**: [What the test will verify]
-
-**Expected Outcome**: Test should FAIL, proving the bug exists.
-
-Any concerns about this approach?
-```
-
----
-
-## Step 3: Create Reproduction Test
+## Step 1: Decide Test Type
 
 ### 🎯 CRITICAL: Apply Testing Strategy Rules
 
 **Before choosing test type, read and apply**: `.github/instructions/testing-strategy.instructions.md`
 
-Key rules:
-- **Unit tests are the default** - prefer them when possible
-- **Handlers ALWAYS require UI tests** - never use unit tests for handler code
-- **Visual/gesture/platform UI issues → UI tests**
-- **Logic/property/data issues → Unit tests**
+**Primary Rule: Prefer Unit Tests**
+
+Unit tests are the default choice because they are:
+- ⚡ Faster to run
+- 🔄 Faster to iterate
+- 💻 No device/simulator required
+- ✅ Cross-platform by default
+
+**Use unit tests for:**
+- Property binding issues
+- Data converter problems
+- XAML parsing/inflation issues
+- Collection manipulation bugs
+- Event handler logic issues
+- Non-visual behavior bugs
+
+**Use UI tests for:**
+- Visual layout/rendering issues
+- Gestures and touch handling
+- Platform-specific UI behavior
+- **Handler code (ALWAYS)** - handlers require device validation
+- Accessibility features
+- Navigation behavior
+
+### Handler Detection
+
+**How to identify handler code** (always requires UI tests):
+- Files in `/Handlers/` directories
+- Classes ending with `Handler` (e.g., `ButtonHandler`, `EntryHandler`)
+- Platform-specific implementations in `Platform/Android/`, `Platform/iOS/`, etc.
+- Code involving `PlatformView`, `MauiContext`, or native view manipulation
 
 ### Unit Test (Preferred)
 
