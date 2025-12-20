@@ -1,0 +1,30 @@
+using NUnit.Framework;
+using UITest.Appium;
+using UITest.Core;
+
+namespace Microsoft.Maui.TestCases.Tests.Issues;
+
+/// <summary>
+/// NUnit UI test for Issue #{{ISSUE_NUMBER}}: {{ISSUE_DESCRIPTION}}
+/// </summary>
+public class Issue{{ISSUE_NUMBER}} : _IssuesUITest
+{
+    public override string Issue => "{{ISSUE_DESCRIPTION}}";
+
+    public Issue{{ISSUE_NUMBER}}(TestDevice device) : base(device) { }
+
+    [Test]
+    [Category(UITestCategories.{{CATEGORY}})]
+    public void {{TEST_METHOD_NAME}}()
+    {
+        // Wait for element to be ready
+        App.WaitForElement("TestButton");
+
+        // Interact with UI
+        App.Tap("TestButton");
+
+        // Verify expected behavior
+        var result = App.FindElement("ResultLabel").GetText();
+        Assert.That(result, Is.EqualTo("Action Completed"));
+    }
+}

@@ -1,0 +1,21 @@
+using Microsoft.Maui.Controls;
+
+namespace Maui.Controls.Sample.Issues;
+
+/// <summary>
+/// Test page for Issue #{{ISSUE_NUMBER}}: {{ISSUE_DESCRIPTION}}
+/// </summary>
+[Issue(IssueTracker.Github, {{ISSUE_NUMBER}}, "{{ISSUE_DESCRIPTION}}", PlatformAffected.{{PLATFORM_AFFECTED}})]
+public partial class Issue{{ISSUE_NUMBER}} : ContentPage
+{
+    public Issue{{ISSUE_NUMBER}}()
+    {
+        InitializeComponent();
+    }
+
+    private void OnButtonClicked(object sender, EventArgs e)
+    {
+        // TODO: Implement behavior that demonstrates the issue/fix
+        ResultLabel.Text = "Action Completed";
+    }
+}
