@@ -1,5 +1,6 @@
 ---
 description: "Test strategy rules for .NET MAUI - when to use unit tests vs UI tests"
+applyTo: "src/Controls/tests/**,src/Core/tests/**,src/Essentials/test/**"
 ---
 
 # .NET MAUI Testing Strategy
