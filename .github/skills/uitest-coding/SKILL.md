@@ -39,8 +39,10 @@ Write new UI tests that:
 ## 🚨 CRITICAL: Always Use BuildAndRunHostApp.ps1 Script
 
 ```bash
-pwsh .github/scripts/BuildAndRunHostApp.ps1 -Platform [android|ios|maccatalyst] -TestFilter "IssueXXXXX"
+pwsh .github/skills/uitest-coding/scripts/BuildAndRunHostApp.ps1 -Platform [android|ios|maccatalyst] -TestFilter "IssueXXXXX"
 ```
+
+**Script location:** This skill includes the build/run script at `.github/skills/uitest-coding/scripts/BuildAndRunHostApp.ps1`
 
 ---
 
@@ -316,13 +318,13 @@ App.Tap("TestButton");
 
 ```bash
 # Default: Android
-pwsh .github/scripts/BuildAndRunHostApp.ps1 -Platform android -TestFilter "IssueXXXXX"
+pwsh .github/skills/uitest-coding/scripts/BuildAndRunHostApp.ps1 -Platform android -TestFilter "IssueXXXXX"
 
 # Or iOS
-pwsh .github/scripts/BuildAndRunHostApp.ps1 -Platform ios -TestFilter "IssueXXXXX"
+pwsh .github/skills/uitest-coding/scripts/BuildAndRunHostApp.ps1 -Platform ios -TestFilter "IssueXXXXX"
 
 # Run by category
-pwsh .github/scripts/BuildAndRunHostApp.ps1 -Platform android -Category "Button"
+pwsh .github/skills/uitest-coding/scripts/BuildAndRunHostApp.ps1 -Platform android -Category "Button"
 ```
 
 ---

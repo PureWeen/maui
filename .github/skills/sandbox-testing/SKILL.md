@@ -106,14 +106,16 @@ Then update `RunWithAppiumTest.cs` to match your MainPage AutomationIds.
 
 ```powershell
 # Android
-pwsh .github/scripts/BuildAndRunSandbox.ps1 -Platform Android
+pwsh .github/skills/sandbox-testing/scripts/BuildAndRunSandbox.ps1 -Platform Android
 
 # iOS
-pwsh .github/scripts/BuildAndRunSandbox.ps1 -Platform iOS
+pwsh .github/skills/sandbox-testing/scripts/BuildAndRunSandbox.ps1 -Platform iOS
 
 # iOS with specific device
-pwsh .github/scripts/BuildAndRunSandbox.ps1 -Platform iOS -DeviceUdid "YOUR-DEVICE-UDID"
+pwsh .github/skills/sandbox-testing/scripts/BuildAndRunSandbox.ps1 -Platform iOS -DeviceUdid "YOUR-DEVICE-UDID"
 ```
+
+**Script location:** This skill includes the build/run script at `.github/skills/sandbox-testing/scripts/BuildAndRunSandbox.ps1`
 
 ### Step 4: Validate Results
 
