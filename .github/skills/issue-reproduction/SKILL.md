@@ -99,7 +99,19 @@ Any concerns about this approach?
 
 ## Step 3: Create Reproduction Test
 
-### Prefer Unit Tests (Faster)
+### 🎯 CRITICAL: Apply Testing Strategy Rules
+
+**Before choosing test type, read and apply**: `.github/instructions/testing-strategy.instructions.md`
+
+Key rules:
+- **Unit tests are the default** - prefer them when possible
+- **Handlers ALWAYS require UI tests** - never use unit tests for handler code
+- **Visual/gesture/platform UI issues → UI tests**
+- **Logic/property/data issues → Unit tests**
+
+### Unit Test (Preferred)
+
+**When to use**: Property binding, data converters, XAML parsing, collection issues, logic bugs
 
 **Location**: `src/Controls/tests/Core.UnitTests/` or similar
 
@@ -126,12 +138,13 @@ public class IssueXXXXXTests : BaseTestFixture
 }
 ```
 
-### Fall Back to UI Tests (When Needed)
+### UI Test (When Handler or UI Required)
 
-Use UI tests only when:
-- Issue requires visual layout verification
-- Issue involves gestures or user interaction
-- Issue is handler-specific (handlers always need UI tests)
+**When to use**:
+- Handler-related issues (always UI tests)
+- Visual layout/rendering
+- Gestures or user interaction
+- Platform-specific UI behavior
 
 **Locations:**
 - Test page: `src/Controls/tests/TestCases.HostApp/Issues/IssueXXXXX.xaml[.cs]`

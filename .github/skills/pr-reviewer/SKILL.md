@@ -88,7 +88,19 @@ If the PR modifies `PublicAPI.Unshipped.txt` files:
 
 ## Step 3: Review Tests
 
+**Apply testing strategy rules from**: `.github/instructions/testing-strategy.instructions.md`
+
 Check if the PR includes appropriate tests based on the change type:
+
+### 🎯 Key Test Rules
+
+| Change Type | Required Test | Reason |
+|-------------|---------------|--------|
+| Handler code | UI test (always) | Handlers require device validation |
+| Visual/layout | UI test | Need visual rendering |
+| Gestures/input | UI test | Need device interaction |
+| Logic/property | Unit test | Faster, no device needed |
+| XAML parsing | Unit test | Can validate in memory |
 
 ### Unit Tests (Preferred for most changes)
 - **Location**: `src/Core/tests/UnitTests/`, `src/Essentials/test/UnitTests/`, `src/Controls/tests/Core.UnitTests/`, `src/Controls/tests/Xaml.UnitTests/`
@@ -103,19 +115,19 @@ Check if the PR includes appropriate tests based on the change type:
 
 ### Test Coverage Assessment
 
-Evaluate based on change type:
-- **Handlers**: Must have UI tests (handlers always require device validation)
-- **Layout/Visual**: Should have UI tests
-- **Property/Logic**: Unit tests may be sufficient
-- **Bug fixes**: Should include regression tests
+**Critical checks:**
+- ❌ **Unit test for handler** = Wrong test type (call this out in review)
+- ❌ **No test for bug fix** = Missing regression test
+- ❌ **Missing AutomationId** = UI test won't work
+- ❌ **Missing `[Issue]` attribute** = HostApp page incorrectly configured
 
-### If PR Lacks Tests
+### If PR Lacks Tests or Has Wrong Test Type
 
-If the PR doesn't include adequate tests:
+If the PR doesn't include adequate tests or uses the wrong type:
 1. Note this as a concern in your review
-2. Specify which type of test is needed (unit vs UI)
-3. For handlers, UI tests are mandatory
-4. For simple fixes, use judgment on whether tests are required
+2. Specify which type of test is needed (unit vs UI) and why
+3. Reference `.github/instructions/testing-strategy.instructions.md` for rules
+4. For handlers, UI tests are mandatory - no exceptions
 
 ---
 
