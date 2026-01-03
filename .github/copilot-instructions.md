@@ -205,6 +205,12 @@ The repository includes specialized custom agents for specific tasks. These agen
    - **Trigger phrases**: "test this PR", "validate PR #XXXXX in Sandbox", "reproduce issue #XXXXX", "try out in Sandbox"
    - **Do NOT use for**: Code review (use pr-reviewer), writing automated tests (use uitest-coding-agent)
 
+5. **test-coverage-agent** - Specialized agent for analyzing issues and PRs to determine comprehensive test coverage requirements
+   - **Use when**: Need to understand what tests are required for an issue or PR before fixing or reviewing
+   - **Capabilities**: Test coverage analysis, edge case identification, existing test discovery, test plan generation
+   - **Trigger phrases**: "what tests are needed for #XXXXX", "analyze test coverage", "find edge cases for #XXXXX", "what tests exist for this scenario"
+   - **Do NOT use for**: Writing tests (use uitest-coding-agent), fixing issues (use issue-resolver)
+
 ### Using Custom Agents
 
 **Delegation Policy**: When user request matches agent trigger phrases, **ALWAYS delegate to the appropriate agent immediately**. Do not ask for permission or explain alternatives unless the request is ambiguous.
@@ -214,6 +220,7 @@ The repository includes specialized custom agents for specific tasks. These agen
 - User: "Test this PR" → Immediately invoke **sandbox-agent**
 - User: "Fix issue #67890" → Immediately invoke **issue-resolver** agent
 - User: "Write UI test for CollectionView" → Immediately invoke **uitest-coding-agent**
+- User: "What tests are needed for issue #12345" → Immediately invoke **test-coverage-agent**
 
 **When NOT to delegate**:
 - User asks "What does PR #12345 do?" → Informational query, handle yourself
