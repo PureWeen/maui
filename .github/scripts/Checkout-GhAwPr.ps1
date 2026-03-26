@@ -12,6 +12,12 @@
     workflow_dispatch skips the platform checkout entirely, so this script is
     the only thing that gets the PR code onto disk.
 
+    SECURITY: Before checkout, the script verifies the PR author has write
+    access (write, maintain, or admin) to the repository. This prevents
+    checking out untrusted fork code in a context that has GITHUB_TOKEN.
+    Fork PRs are evaluated via pull_request_target instead (where the platform
+    handles checkout safely inside a sandboxed container).
+
     SECURITY NOTE: This script checks out PR code onto disk. This is safe
     because NO subsequent user steps execute workspace code — the gh-aw
     platform copies the workspace into a sandboxed container with scrubbed
@@ -41,6 +47,35 @@ if (-not $env:PR_NUMBER -or $env:PR_NUMBER -eq '0') {
 }
 
 $PrNumber = $env:PR_NUMBER
+
+# ── Verify PR author has write access ────────────────────────────────────────
+# workflow_dispatch runs with GITHUB_TOKEN. Only check out code from trusted
+# authors of same-repo PRs. Fork PRs are handled by pull_request_target instead.
+
+$PrInfo = gh pr view $PrNumber --repo $env:GITHUB_REPOSITORY --json author,isCrossRepository --jq '{author: .author.login, isFork: .isCrossRepository}'  | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ Failed to fetch PR #$PrNumber metadata"
+    exit 1
+}
+
+if ($PrInfo.isFork) {
+    Write-Host "⏭️ PR #$PrNumber is from a fork. workflow_dispatch does not check out fork PRs."
+    Write-Host "   Fork PRs are evaluated automatically via pull_request_target."
+    exit 1
+}
+
+$Permission = gh api "repos/$($env:GITHUB_REPOSITORY)/collaborators/$($PrInfo.author)/permission" --jq '.permission'
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ Failed to check permissions for '$($PrInfo.author)'"
+    exit 1
+}
+
+$AllowedRoles = @('admin', 'write', 'maintain')
+if ($Permission -notin $AllowedRoles) {
+    Write-Host "⏭️ PR author '$($PrInfo.author)' has '$Permission' access. workflow_dispatch only processes PRs from authors with write access."
+    exit 1
+}
+Write-Host "✅ PR #$PrNumber by '$($PrInfo.author)' ($Permission access, same-repo)"
 
 # ── Save base branch SHA ─────────────────────────────────────────────────────
 # Must be captured BEFORE checkout replaces HEAD.
