@@ -15,6 +15,8 @@ on:
         required: true
         type: number
 
+  roles: all
+
 if: >-
   (github.event_name == 'pull_request_target' && github.event.pull_request.draft == false) ||
   github.event_name == 'workflow_dispatch' ||
