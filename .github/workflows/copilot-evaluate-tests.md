@@ -32,6 +32,9 @@ engine:
   id: copilot
   model: claude-sonnet-4.6
 
+features:
+  copilot-requests: true
+
 safe-outputs:
   add-comment:
     max: 1
