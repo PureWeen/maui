@@ -198,29 +198,25 @@ If there is nothing to evaluate (PR has no test files, PR is a docs-only change,
 
 Do not post a comment and do not silently exit — always use `noop` so the workflow run shows a clear reason.
 
-## EXPERIMENT: Build MAUI with provisioned SDK (run this FIRST)
+## EXPERIMENT: Build HostApp (run this FIRST)
 
-The pre-agent steps provisioned a local .NET SDK with MAUI workloads at `.dotnet/`. The `.dotnet/dotnet` binary cannot be executed directly in this container (noexec), so use the system `dotnet` with `DOTNET_ROOT` pointing to the local SDK.
+The pre-agent steps provisioned a local .NET SDK with MAUI workloads at `.dotnet/`. Use `DOTNET_ROOT` to point the system `dotnet` at the local SDK.
 
 ```bash
-echo "=== Step 1: Verify local SDK packs ==="
-ls .dotnet/packs/ 2>&1 | head -20
-echo "---"
-ls .dotnet/sdk/ 2>&1
-
-echo "=== Step 2: Set DOTNET_ROOT and verify ==="
+echo "=== Step 1: Set DOTNET_ROOT ==="
 export DOTNET_ROOT=$(pwd)/.dotnet
 echo "DOTNET_ROOT=$DOTNET_ROOT"
 dotnet --version 2>&1
-dotnet workload list 2>&1
 
-echo "=== Step 3: Find and restore Core.UnitTests ==="
-UNITTEST=$(find . -name "Core.UnitTests.csproj" -path "*/Core/tests/*" -type f 2>/dev/null | head -1)
-echo "Found: $UNITTEST"
-dotnet restore "$UNITTEST" 2>&1 | tail -30
+echo "=== Step 2: Find HostApp project ==="
+HOSTAPP=$(find . -name "Controls.TestCases.HostApp.csproj" -type f 2>/dev/null | head -1)
+echo "Found: $HOSTAPP"
 
-echo "=== Step 4: Build Core.UnitTests ==="
-dotnet build "$UNITTEST" -c Debug --no-restore 2>&1 | tail -30
+echo "=== Step 3: Restore HostApp ==="
+dotnet restore "$HOSTAPP" 2>&1 | tail -30
+
+echo "=== Step 4: Build HostApp for Android ==="
+dotnet build "$HOSTAPP" -f net10.0-android -c Debug --no-restore 2>&1 | tail -40
 ```
 
 After running the experiment, post the full results using `add_comment` with `item_number` set to the PR number. Include ALL output from every step. Then call `noop` with message "Build experiment complete" and STOP — do not proceed with the regular evaluation below.

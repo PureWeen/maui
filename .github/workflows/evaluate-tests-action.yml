@@ -1,0 +1,347 @@
+# ┌─────────────────────────────────────────────────────────────────────────┐
+# │ evaluate-tests-action.yml                                              │
+# │                                                                        │
+# │ Standard GitHub Actions reproduction of the gh-aw                      │
+# │ copilot-evaluate-tests workflow from dotnet/maui.                      │
+# │                                                                        │
+# │ WHAT THIS REPRODUCES:                                                  │
+# │  ✅ /evaluate-tests slash command (via issue_comment parsing)          │
+# │  ✅ workflow_dispatch with PR number input                             │
+# │  ✅ pull_request trigger with test file path filter                    │
+# │  ✅ Gate: skip if no test source files in diff                         │
+# │  ✅ Context gathering via Gather-TestContext.ps1                       │
+# │  ✅ AI evaluation via GitHub Models API                                │
+# │  ✅ PR comment posting with hide-older and footer                      │
+# │  ✅ Emoji reaction on slash command trigger                            │
+# │  ✅ Concurrency control (cancel-in-progress)                          │
+# │                                                                        │
+# │ WHAT gh-aw PROVIDES THAT THIS CANNOT:                                 │
+# │  ❌ Interactive tool-using agent (can browse files, iterate)           │
+# │  ❌ Agent sandboxing (network firewall, credential scrubbing)          │
+# │  ❌ Platform-enforced safe-outputs (threat detection, max limits)      │
+# │  ❌ Prompt rendering from .md at runtime                               │
+# │  ❌ Built-in slash_command trigger with auto-matching                  │
+# │  ❌ Status messages (run-started, run-success, run-failure)            │
+# │                                                                        │
+# │ KEY TRADEOFF: gh-aw's agent can interactively read files and use       │
+# │ tools during evaluation. This workflow pre-gathers ALL context and     │
+# │ sends it in a single-shot prompt to GitHub Models API. Quality may     │
+# │ differ for complex PRs where the agent would iteratively explore.      │
+# └─────────────────────────────────────────────────────────────────────────┘
+
+name: Evaluate PR Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'src/**/tests/**'
+      - 'src/**/test/**'
+      - 'src/**/TestCases*/**'
+
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to evaluate'
+        required: true
+        type: number
+      suppress_output:
+        description: 'Dry-run — evaluate but do not post comment on the PR'
+        required: false
+        type: boolean
+        default: false
+
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: write
+  models: read
+
+concurrency:
+  group: "evaluate-tests-${{ github.event.issue.number || github.event.pull_request.number || inputs.pr_number || github.run_id }}"
+  cancel-in-progress: true
+
+jobs:
+  evaluate-tests:
+    name: Evaluate PR Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # ── Trigger filtering ────────────────────────────────────────────────
+    # pull_request: always runs (path filter handles gating)
+    # workflow_dispatch: always runs
+    # issue_comment: only when comment starts with /evaluate-tests
+    #   AND the comment is on a pull request (not a plain issue)
+    #
+    # NOTE: gh-aw handles this with built-in `slash_command:` trigger.
+    # In standard GH Actions we must parse the comment ourselves.
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        startsWith(github.event.comment.body, '/evaluate-tests')
+      )
+
+    steps:
+      # ── Step 0: Slash command reaction ──────────────────────────────────
+      # gh-aw does this automatically with `reaction:` in frontmatter.
+      # We reproduce it manually with the GitHub API.
+      - name: React to slash command
+        if: github.event_name == 'issue_comment'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
+
+      # ── Step 1: Resolve PR number ──────────────────────────────────────
+      - name: Resolve PR number
+        id: pr
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "number=${{ inputs.pr_number }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "issue_comment" ]; then
+            echo "number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Step 2: Gate — skip if no test files in diff ────────────────────
+      # Same logic as the gh-aw version: checks for .cs/.xaml files in
+      # test directories. Falls back to REST API for large PRs (300+ files).
+      - name: Gate — skip if no test files in diff
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          # Verify PR is open
+          STATE=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state --jq .state 2>&1) || {
+            echo "::error::Failed to fetch PR #$PR_NUMBER: $STATE"
+            exit 1
+          }
+          if [ "$STATE" != "OPEN" ]; then
+            echo "::notice::PR #$PR_NUMBER is $STATE — skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Get changed files (with fallback for large PRs)
+          if DIFF_OUTPUT=$(gh pr diff "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --name-only 2>/dev/null); then
+            TEST_FILES=$(echo "$DIFF_OUTPUT" \
+              | grep -E '\.(cs|xaml)$' \
+              | grep -iE '(tests?/|TestCases|UnitTests|DeviceTests)' \
+              || true)
+          else
+            API_FILES=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" \
+              --paginate --jq '.[].filename' 2>&1) || {
+              echo "::error::Both gh pr diff and REST API failed: $API_FILES"
+              exit 1
+            }
+            TEST_FILES=$(echo "$API_FILES" \
+              | grep -E '\.(cs|xaml)$' \
+              | grep -iE '(tests?/|TestCases|UnitTests|DeviceTests)' \
+              || true)
+          fi
+
+          if [ -z "$TEST_FILES" ]; then
+            echo "::notice::No test source files in PR diff. Nothing to evaluate."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "✅ Found test files:"
+          echo "$TEST_FILES" | head -20
+
+      # ── Step 3: Checkout ────────────────────────────────────────────────
+      - name: Checkout repository
+        if: steps.gate.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout PR branch
+        if: steps.gate.outputs.skip != 'true' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr checkout ${{ steps.pr.outputs.number }}
+
+      # ── Step 4: Gather context ──────────────────────────────────────────
+      # Uses the same Gather-TestContext.ps1 script as the gh-aw workflow.
+      # This produces CustomAgentLogsTmp/TestEvaluation/context.md
+      - name: Gather test context
+        if: steps.gate.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          .github/skills/evaluate-pr-tests/scripts/Gather-TestContext.ps1 `
+            -PrNumber ${{ steps.pr.outputs.number }}
+
+      # ── Step 5: Gather PR metadata + diff for the AI prompt ─────────────
+      # gh-aw's agent can interactively read files; we pre-gather everything.
+      - name: Gather PR metadata and diff
+        if: steps.gate.outputs.skip != 'true'
+        id: context
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        shell: bash
+        run: |
+          mkdir -p CustomAgentLogsTmp/TestEvaluation
+
+          # PR metadata
+          gh pr view "$PR_NUMBER" --json title,body,labels,baseRefName,headRefName,files \
+            > CustomAgentLogsTmp/TestEvaluation/pr-metadata.json
+
+          # Changed file names
+          gh pr diff "$PR_NUMBER" --name-only 2>/dev/null \
+            > CustomAgentLogsTmp/TestEvaluation/changed-files.txt || \
+            gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" \
+              --paginate --jq '.[].filename' \
+              > CustomAgentLogsTmp/TestEvaluation/changed-files.txt
+
+          # Separate fix files from test files
+          grep -vE '(tests?/|TestCases|UnitTests|DeviceTests)' \
+            CustomAgentLogsTmp/TestEvaluation/changed-files.txt \
+            > CustomAgentLogsTmp/TestEvaluation/fix-files.txt || true
+
+          grep -iE '(tests?/|TestCases|UnitTests|DeviceTests)' \
+            CustomAgentLogsTmp/TestEvaluation/changed-files.txt \
+            | grep -E '\.(cs|xaml)$' \
+            > CustomAgentLogsTmp/TestEvaluation/test-files.txt || true
+
+          # Collect test file contents (up to 200KB total to fit in prompt)
+          TOTAL=0
+          MAX=200000
+          echo "" > CustomAgentLogsTmp/TestEvaluation/test-contents.txt
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              SIZE=$(wc -c < "$file")
+              TOTAL=$((TOTAL + SIZE))
+              if [ $TOTAL -gt $MAX ]; then
+                echo "⚠️ Truncated: total size exceeds ${MAX} bytes" \
+                  >> CustomAgentLogsTmp/TestEvaluation/test-contents.txt
+                break
+              fi
+              echo "=== FILE: $file ===" >> CustomAgentLogsTmp/TestEvaluation/test-contents.txt
+              cat "$file" >> CustomAgentLogsTmp/TestEvaluation/test-contents.txt
+              echo "" >> CustomAgentLogsTmp/TestEvaluation/test-contents.txt
+            fi
+          done < CustomAgentLogsTmp/TestEvaluation/test-files.txt
+
+          # Collect fix file contents (up to 100KB)
+          TOTAL=0
+          MAX=100000
+          echo "" > CustomAgentLogsTmp/TestEvaluation/fix-contents.txt
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              SIZE=$(wc -c < "$file")
+              TOTAL=$((TOTAL + SIZE))
+              if [ $TOTAL -gt $MAX ]; then
+                echo "⚠️ Truncated: total size exceeds ${MAX} bytes" \
+                  >> CustomAgentLogsTmp/TestEvaluation/fix-contents.txt
+                break
+              fi
+              echo "=== FILE: $file ===" >> CustomAgentLogsTmp/TestEvaluation/fix-contents.txt
+              cat "$file" >> CustomAgentLogsTmp/TestEvaluation/fix-contents.txt
+              echo "" >> CustomAgentLogsTmp/TestEvaluation/fix-contents.txt
+            fi
+          done < CustomAgentLogsTmp/TestEvaluation/fix-files.txt
+
+          echo "✅ Context gathered"
+          echo "  Test files: $(wc -l < CustomAgentLogsTmp/TestEvaluation/test-files.txt)"
+          echo "  Fix files:  $(wc -l < CustomAgentLogsTmp/TestEvaluation/fix-files.txt)"
+
+      # ── Step 6: AI Evaluation via GitHub Models API ─────────────────────
+      # This is the core difference from gh-aw:
+      #   gh-aw:  Interactive agent with tools (can read files, iterate)
+      #   Here:   Single-shot prompt with pre-gathered context
+      #
+      # We use GitHub Models API (models.inference.ai.azure.com) which is
+      # accessible with GITHUB_TOKEN when `models: read` permission is set.
+      - name: Evaluate tests with AI
+        if: steps.gate.outputs.skip != 'true'
+        id: evaluate
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          .github/scripts/Evaluate-Tests-AI.ps1 `
+            -PrNumber ${{ steps.pr.outputs.number }} `
+            -OutputPath "CustomAgentLogsTmp/TestEvaluation/evaluation.md"
+
+      # ── Step 7: Post comment on PR ──────────────────────────────────────
+      # gh-aw uses `safe-outputs: add-comment: max: 1, hide-older-comments: true`
+      # We reproduce hide-older manually by minimizing previous bot comments.
+      - name: Hide older evaluation comments
+        if: steps.gate.outputs.skip != 'true' && inputs.suppress_output != true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ steps.pr.outputs.number }};
+            const marker = '<!-- evaluate-tests-bot -->';
+
+            // List existing comments and minimize older ones from this bot
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100
+            });
+
+            for (const comment of comments.data) {
+              if (comment.body.includes(marker) && comment.user.type === 'Bot') {
+                // Use GraphQL to minimize (collapse) the comment
+                try {
+                  await github.graphql(`
+                    mutation($id: ID!) {
+                      minimizeComment(input: {subjectId: $id, classifier: OUTDATED}) {
+                        minimizedComment { isMinimized }
+                      }
+                    }
+                  `, { id: comment.node_id });
+                  console.log(`Minimized old comment #${comment.id}`);
+                } catch (e) {
+                  console.log(`Could not minimize comment #${comment.id}: ${e.message}`);
+                }
+              }
+            }
+
+      - name: Post evaluation comment
+        if: steps.gate.outputs.skip != 'true' && inputs.suppress_output != true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          EVAL_FILE="CustomAgentLogsTmp/TestEvaluation/evaluation.md"
+          if [ ! -f "$EVAL_FILE" ]; then
+            echo "::warning::No evaluation output found. AI step may have failed."
+            exit 0
+          fi
+
+          # Wrap in our comment format with marker and footer
+          {
+            echo "<!-- evaluate-tests-bot -->"
+            cat "$EVAL_FILE"
+            echo ""
+            echo "> 🧪 *Test evaluation by [evaluate-tests-action](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*"
+          } > /tmp/comment-body.md
+
+          gh pr comment "$PR_NUMBER" --body-file /tmp/comment-body.md
+
+      # ── Step 8: Log output for dry-run mode ─────────────────────────────
+      - name: Log evaluation (dry-run)
+        if: steps.gate.outputs.skip != 'true' && inputs.suppress_output == true
+        run: |
+          echo "=== DRY RUN — Evaluation output (not posted to PR) ==="
+          cat CustomAgentLogsTmp/TestEvaluation/evaluation.md || echo "No evaluation output"
