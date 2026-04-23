@@ -131,6 +131,24 @@ steps:
       GH_TOKEN: ${{ github.token }}
       PR_NUMBER: ${{ inputs.pr_number }}
     run: pwsh .github/scripts/Checkout-GhAwPr.ps1
+
+  # Pre-cache Gradle wrapper distribution. The AWF squid proxy blocks Gradle's
+  # HTTPS CONNECT tunneling even when services.gradle.org is allowlisted.
+  # This step downloads it on the runner (outside the container) where there's
+  # no proxy. The workspace .gradle-home/ is mounted into the container.
+  - name: Pre-cache Gradle distribution
+    run: |
+      mkdir -p .gradle-home/wrapper/dists
+      GRADLE_VER=8.13
+      GRADLE_URL="https://services.gradle.org/distributions/gradle-${GRADLE_VER}-all.zip"
+      DIST_DIR=".gradle-home/wrapper/dists/gradle-${GRADLE_VER}-all"
+      mkdir -p "$DIST_DIR/downloaded"
+      echo "⏳ Downloading Gradle ${GRADLE_VER}..."
+      curl -sL "$GRADLE_URL" -o "$DIST_DIR/downloaded/gradle-${GRADLE_VER}-all.zip"
+      echo "⏳ Extracting..."
+      unzip -q "$DIST_DIR/downloaded/gradle-${GRADLE_VER}-all.zip" -d "$DIST_DIR/downloaded/"
+      echo "✅ Gradle ${GRADLE_VER} cached at .gradle-home/"
+      ls "$DIST_DIR/downloaded/"
 ---
 
 # Evaluate PR Tests
@@ -216,9 +234,11 @@ ls .dotnet/packs/ 2>&1 | head -20
 ```bash
 export DOTNET_ROOT=$(pwd)/.dotnet
 export GRADLE_USER_HOME=$(pwd)/.gradle-home
-mkdir -p .gradle-home
 
-echo "=== C1: Build MSBuild tasks ==="
+echo "=== C1: Verify Gradle cache ==="
+ls -la .gradle-home/wrapper/dists/ 2>&1
+
+echo "=== C2: Build MSBuild tasks ==="
 dotnet build Microsoft.Maui.BuildTasks.slnf -c Release 2>&1 | tail -20
 ```
 

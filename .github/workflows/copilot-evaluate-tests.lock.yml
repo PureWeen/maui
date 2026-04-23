@@ -1,4 +1,4 @@
-# gh-aw-metadata: {"schema_version":"v3","frontmatter_hash":"0e92228af668fdc336b153ecaf3e273e9475a2d7b825145251ea6414d047bd7d","compiler_version":"v0.69.3","strict":true,"agent_id":"copilot","agent_model":"claude-sonnet-4.6"}
+# gh-aw-metadata: {"schema_version":"v3","frontmatter_hash":"7b030fc39ba95446c2b976c06eedbd421bc51d97a5e4d8ee110c77176058597f","compiler_version":"v0.69.3","strict":true,"agent_id":"copilot","agent_model":"claude-sonnet-4.6"}
 # gh-aw-manifest: {"version":1,"secrets":["COPILOT_GITHUB_TOKEN","GH_AW_GITHUB_MCP_SERVER_TOKEN","GH_AW_GITHUB_TOKEN","GITHUB_TOKEN"],"actions":[{"repo":"actions/checkout","sha":"de0fac2e4500dabe0009e67214ff5f5447ce83dd","version":"v6.0.2"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"006ffd856b868b71df342dbe0ba082a963249b31","version":"v0.69.3"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.25.26"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.25.26"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.25.26"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.2.26"},{"image":"ghcr.io/github/github-mcp-server:v1.0.0"},{"image":"node:lts-alpine"}]}
 #    ___                   _   _      
 #   / _ \                 | | (_)     
@@ -248,14 +248,14 @@ jobs:
         run: |
           bash "${RUNNER_TEMP}/gh-aw/actions/create_prompt_first.sh"
           {
-          cat << 'GH_AW_PROMPT_290ed76386b7dbfa_EOF'
+          cat << 'GH_AW_PROMPT_666321874259d9b0_EOF'
           <system>
-          GH_AW_PROMPT_290ed76386b7dbfa_EOF
+          GH_AW_PROMPT_666321874259d9b0_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/xpia.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/temp_folder_prompt.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/markdown.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/safe_outputs_prompt.md"
-          cat << 'GH_AW_PROMPT_290ed76386b7dbfa_EOF'
+          cat << 'GH_AW_PROMPT_666321874259d9b0_EOF'
           <safe-output-tools>
           Tools: add_comment, missing_tool, missing_data, noop
           </safe-output-tools>
@@ -287,15 +287,15 @@ jobs:
           {{/if}}
           </github-context>
           
-          GH_AW_PROMPT_290ed76386b7dbfa_EOF
+          GH_AW_PROMPT_666321874259d9b0_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/github_mcp_tools_with_safeoutputs_prompt.md"
           if [ "$GITHUB_EVENT_NAME" = "issue_comment" ] && [ -n "$GH_AW_IS_PR_COMMENT" ] || [ "$GITHUB_EVENT_NAME" = "pull_request_review_comment" ] || [ "$GITHUB_EVENT_NAME" = "pull_request_review" ]; then
             cat "${RUNNER_TEMP}/gh-aw/prompts/pr_context_prompt.md"
           fi
-          cat << 'GH_AW_PROMPT_290ed76386b7dbfa_EOF'
+          cat << 'GH_AW_PROMPT_666321874259d9b0_EOF'
           </system>
           {{#runtime-import .github/workflows/copilot-evaluate-tests.md}}
-          GH_AW_PROMPT_290ed76386b7dbfa_EOF
+          GH_AW_PROMPT_666321874259d9b0_EOF
           } > "$GH_AW_PROMPT"
       - name: Interpolate variables and render templates
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
@@ -440,6 +440,19 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         name: Checkout PR and restore agent infrastructure
         run: pwsh .github/scripts/Checkout-GhAwPr.ps1
+      - name: Pre-cache Gradle distribution
+        run: |-
+          mkdir -p .gradle-home/wrapper/dists
+          GRADLE_VER=8.13
+          GRADLE_URL="https://services.gradle.org/distributions/gradle-${GRADLE_VER}-all.zip"
+          DIST_DIR=".gradle-home/wrapper/dists/gradle-${GRADLE_VER}-all"
+          mkdir -p "$DIST_DIR/downloaded"
+          echo "⏳ Downloading Gradle ${GRADLE_VER}..."
+          curl -sL "$GRADLE_URL" -o "$DIST_DIR/downloaded/gradle-${GRADLE_VER}-all.zip"
+          echo "⏳ Extracting..."
+          unzip -q "$DIST_DIR/downloaded/gradle-${GRADLE_VER}-all.zip" -d "$DIST_DIR/downloaded/"
+          echo "✅ Gradle ${GRADLE_VER} cached at .gradle-home/"
+          ls "$DIST_DIR/downloaded/"
 
       - name: Configure Git credentials
         env:
@@ -491,9 +504,9 @@ jobs:
           mkdir -p "${RUNNER_TEMP}/gh-aw/safeoutputs"
           mkdir -p /tmp/gh-aw/safeoutputs
           mkdir -p /tmp/gh-aw/mcp-logs/safeoutputs
-          cat > "${RUNNER_TEMP}/gh-aw/safeoutputs/config.json" << 'GH_AW_SAFE_OUTPUTS_CONFIG_d6b316725343c83c_EOF'
+          cat > "${RUNNER_TEMP}/gh-aw/safeoutputs/config.json" << 'GH_AW_SAFE_OUTPUTS_CONFIG_010198a50e4b0b5d_EOF'
           {"add_comment":{"hide_older_comments":true,"max":1,"target":"*"},"create_report_incomplete_issue":{},"missing_data":{},"missing_tool":{},"noop":{"max":1,"report-as-issue":"false"},"report_incomplete":{}}
-          GH_AW_SAFE_OUTPUTS_CONFIG_d6b316725343c83c_EOF
+          GH_AW_SAFE_OUTPUTS_CONFIG_010198a50e4b0b5d_EOF
       - name: Write Safe Outputs Tools
         env:
           GH_AW_TOOLS_META_JSON: |
@@ -681,7 +694,7 @@ jobs:
           
           mkdir -p /home/runner/.copilot
           GH_AW_NODE=$(which node 2>/dev/null || command -v node 2>/dev/null || echo node)
-          cat << GH_AW_MCP_CONFIG_13f866287e503bc3_EOF | "$GH_AW_NODE" "${RUNNER_TEMP}/gh-aw/actions/start_mcp_gateway.cjs"
+          cat << GH_AW_MCP_CONFIG_06d739a03ffa61f5_EOF | "$GH_AW_NODE" "${RUNNER_TEMP}/gh-aw/actions/start_mcp_gateway.cjs"
           {
             "mcpServers": {
               "github": {
@@ -722,7 +735,7 @@ jobs:
               "payloadDir": "${MCP_GATEWAY_PAYLOAD_DIR}"
             }
           }
-          GH_AW_MCP_CONFIG_13f866287e503bc3_EOF
+          GH_AW_MCP_CONFIG_06d739a03ffa61f5_EOF
       - name: Download activation artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
