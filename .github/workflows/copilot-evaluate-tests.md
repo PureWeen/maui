@@ -65,6 +65,9 @@ network:
     - defaults
     - dotnet
     - java
+    - "services.gradle.org"
+    - "downloads.gradle.org"
+    - "releaseassets.githubusercontent.com"
 
 concurrency:
   group: "evaluate-pr-tests-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number || github.run_id }}"
