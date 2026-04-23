@@ -151,6 +151,11 @@ steps:
 
       echo "⏳ Step 5: Building MAUI MSBuild tasks..."
       .dotnet/dotnet build Microsoft.Maui.BuildTasks.slnf -c Release 2>&1 | tail -10
+
+      echo "⏳ Step 6: Pre-caching Gradle wrapper..."
+      mkdir -p .gradle-home
+      export GRADLE_USER_HOME=$(pwd)/.gradle-home
+      echo "GRADLE_USER_HOME=$GRADLE_USER_HOME"
       echo "✅ Provisioning complete."
 ---
 
@@ -206,9 +211,11 @@ Do not post a comment and do not silently exit — always use `noop` so the work
 The pre-agent steps provisioned a local .NET SDK with MAUI workloads at `.dotnet/`. Use `DOTNET_ROOT` to point the system `dotnet` at the local SDK.
 
 ```bash
-echo "=== Step 1: Set DOTNET_ROOT ==="
+echo "=== Step 1: Set DOTNET_ROOT and GRADLE_USER_HOME ==="
 export DOTNET_ROOT=$(pwd)/.dotnet
+export GRADLE_USER_HOME=$(pwd)/.gradle-home
 echo "DOTNET_ROOT=$DOTNET_ROOT"
+echo "GRADLE_USER_HOME=$GRADLE_USER_HOME"
 dotnet --version 2>&1
 
 echo "=== Step 2: Find HostApp project ==="
