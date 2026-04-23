@@ -127,36 +127,6 @@ steps:
       GH_TOKEN: ${{ github.token }}
       PR_NUMBER: ${{ inputs.pr_number }}
     run: pwsh .github/scripts/Checkout-GhAwPr.ps1
-
-  # Provision a local .NET SDK with MAUI workloads so the agent can build/test.
-  # 1. dotnet cake --target=dotnet downloads the pinned SDK to .dotnet/
-  # 2. .dotnet/dotnet workload install adds MAUI workloads
-  # The workspace is mounted into the agent container, so .dotnet/ is available.
-  - name: Provision .NET SDK with MAUI workloads
-    run: |
-      echo "⏳ Step 1: Restoring dotnet tools (for dotnet-cake)..."
-      dotnet tool restore 2>&1 | tail -5
-
-      echo "⏳ Step 2: Downloading local .NET SDK to .dotnet/ via Cake..."
-      dotnet cake --target=dotnet 2>&1 | tail -10
-      echo "SDK version: $(.dotnet/dotnet --version)"
-
-      echo "⏳ Step 3: Installing MAUI workloads..."
-      .dotnet/dotnet workload install maui-android --skip-sign-check 2>&1 | tail -10
-      echo "✅ Workload install complete."
-      .dotnet/dotnet workload list
-
-      echo "⏳ Step 4: Verifying packs..."
-      ls .dotnet/packs/ | head -20
-
-      echo "⏳ Step 5: Building MAUI MSBuild tasks..."
-      .dotnet/dotnet build Microsoft.Maui.BuildTasks.slnf -c Release 2>&1 | tail -10
-
-      echo "⏳ Step 6: Pre-caching Gradle wrapper..."
-      mkdir -p .gradle-home
-      export GRADLE_USER_HOME=$(pwd)/.gradle-home
-      echo "GRADLE_USER_HOME=$GRADLE_USER_HOME"
-      echo "✅ Provisioning complete."
 ---
 
 # Evaluate PR Tests
@@ -206,30 +176,67 @@ If there is nothing to evaluate (PR has no test files, PR is a docs-only change,
 
 Do not post a comment and do not silently exit — always use `noop` so the workflow run shows a clear reason.
 
-## EXPERIMENT: Build HostApp (run this FIRST)
+## EXPERIMENT: Full build inside gh-aw sandbox (run this FIRST)
 
-The pre-agent steps provisioned a local .NET SDK with MAUI workloads at `.dotnet/`. Use `DOTNET_ROOT` to point the system `dotnet` at the local SDK.
+Test whether the entire MAUI build chain can happen inside the agent container. Run each step in order and report ALL output.
+
+### Step A: Provision SDK inside the container
 
 ```bash
-echo "=== Step 1: Set DOTNET_ROOT and GRADLE_USER_HOME ==="
+echo "=== A1: Restore dotnet tools ==="
+dotnet tool restore 2>&1 | tail -5
+
+echo "=== A2: Download local SDK via Cake ==="
+dotnet cake --target=dotnet 2>&1 | tail -10
+
+echo "=== A3: Set DOTNET_ROOT ==="
+export DOTNET_ROOT=$(pwd)/.dotnet
+echo "DOTNET_ROOT=$DOTNET_ROOT"
+dotnet --version 2>&1
+```
+
+### Step B: Install workloads via DOTNET_ROOT
+
+```bash
+export DOTNET_ROOT=$(pwd)/.dotnet
+
+echo "=== B1: Install maui-android workload ==="
+dotnet workload install maui-android --skip-sign-check 2>&1 | tail -20
+
+echo "=== B2: Verify workloads ==="
+dotnet workload list 2>&1
+ls .dotnet/packs/ 2>&1 | head -20
+```
+
+### Step C: Build MAUI infrastructure
+
+```bash
 export DOTNET_ROOT=$(pwd)/.dotnet
 export GRADLE_USER_HOME=$(pwd)/.gradle-home
-echo "DOTNET_ROOT=$DOTNET_ROOT"
-echo "GRADLE_USER_HOME=$GRADLE_USER_HOME"
-dotnet --version 2>&1
+mkdir -p .gradle-home
 
-echo "=== Step 2: Find HostApp project ==="
+echo "=== C1: Build MSBuild tasks ==="
+dotnet build Microsoft.Maui.BuildTasks.slnf -c Release 2>&1 | tail -20
+```
+
+### Step D: Build HostApp
+
+```bash
+export DOTNET_ROOT=$(pwd)/.dotnet
+export GRADLE_USER_HOME=$(pwd)/.gradle-home
+
+echo "=== D1: Find HostApp ==="
 HOSTAPP=$(find . -name "Controls.TestCases.HostApp.csproj" -type f 2>/dev/null | head -1)
 echo "Found: $HOSTAPP"
 
-echo "=== Step 3: Restore HostApp ==="
-dotnet restore "$HOSTAPP" 2>&1 | tail -30
+echo "=== D2: Restore HostApp ==="
+dotnet restore "$HOSTAPP" 2>&1 | tail -20
 
-echo "=== Step 4: Build HostApp for Android ==="
+echo "=== D3: Build HostApp for Android ==="
 dotnet build "$HOSTAPP" -f net10.0-android -c Debug --no-restore 2>&1 | tail -40
 ```
 
-After running the experiment, post the full results using `add_comment` with `item_number` set to the PR number. Include ALL output from every step. Then call `noop` with message "Build experiment complete" and STOP — do not proceed with the regular evaluation below.
+After running ALL steps, post the full results using `add_comment` with `item_number` set to the PR number. Include ALL output from every step. Then call `noop` with message "Build experiment complete" and STOP — do not proceed with the regular evaluation below.
 
 ## Running the skill (SKIP FOR THIS EXPERIMENT)
 
