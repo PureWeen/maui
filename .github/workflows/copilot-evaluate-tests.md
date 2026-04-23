@@ -178,36 +178,55 @@ Do not post a comment and do not silently exit — always use `noop` so the work
 
 ## EXPERIMENT: Build Environment Test (run this FIRST)
 
-Before doing anything else, run these commands and report what you find:
+Before doing anything else, run these commands **in order** and report what you find.
+
+### Part A: Prove dotnet build works (no workloads needed)
 
 ```bash
-echo "=== Step 1: Check .NET SDK ==="
-dotnet --version 2>&1 || echo "dotnet CLI not found"
+echo "=== A1: Check .NET SDK ==="
+dotnet --version 2>&1
 
-echo "=== Step 2: Check env vars containing TOKEN (names only, redacted values) ==="
-env | grep -i TOKEN | sed 's/=.*/=<REDACTED>/' 2>&1 || echo "No TOKEN vars"
+echo "=== A2: Create and build a minimal console app ==="
+mkdir -p /tmp/test-build
+dotnet new console -o /tmp/test-build/hello --force 2>&1
+dotnet build /tmp/test-build/hello -c Debug 2>&1 | tail -20
+```
 
-echo "=== Step 3: Network test - api.nuget.org ==="
-curl -s --connect-timeout 5 https://api.nuget.org/v3/index.json 2>&1 | head -c 200 || echo "BLOCKED"
+### Part B: Test NuGet network access via dotnet
 
-echo "=== Step 4: Find unit test projects (no platform workloads needed) ==="
-find . -name "Core.UnitTests.csproj" -path "*/Core/tests/*" -type f 2>/dev/null | head -5
+```bash
+echo "=== B1: Test dotnet restore with NuGet ==="
+dotnet restore /tmp/test-build/hello --force 2>&1 | tail -20
+```
 
-echo "=== Step 5: Try dotnet restore on Core.UnitTests ==="
+### Part C: Try installing MAUI workloads
+
+```bash
+echo "=== C1: Check installed workloads ==="
+dotnet workload list 2>&1
+
+echo "=== C2: Try installing android workload ==="
+dotnet workload install maui-android 2>&1 | tail -40
+```
+
+### Part D: If workloads installed, try building MAUI unit tests
+
+```bash
+echo "=== D1: Find Core.UnitTests ==="
 UNITTEST=$(find . -name "Core.UnitTests.csproj" -path "*/Core/tests/*" -type f 2>/dev/null | head -1)
+echo "Found: $UNITTEST"
+
 if [ -n "$UNITTEST" ]; then
-  dotnet restore "$UNITTEST" 2>&1 | tail -40
-  echo "=== Step 6: Try dotnet build Core.UnitTests ==="
-  dotnet build "$UNITTEST" -c Debug 2>&1 | tail -40
+  echo "=== D2: Try dotnet restore ==="
+  dotnet restore "$UNITTEST" 2>&1 | tail -30
+  echo "=== D3: Try dotnet build ==="
+  dotnet build "$UNITTEST" -c Debug 2>&1 | tail -30
 else
   echo "Core.UnitTests project not found"
 fi
-
-echo "=== Step 7: Check installed workloads ==="
-dotnet workload list 2>&1 || echo "workload list failed"
 ```
 
-After running the experiment, post the full results using `add_comment` with `item_number` set to the PR number. Include ALL output from every step. Then call `noop` with message "Build experiment complete" and STOP — do not proceed with the regular evaluation below.
+After running ALL parts, post the full results using `add_comment` with `item_number` set to the PR number. Include ALL output from every step. Then call `noop` with message "Build experiment complete" and STOP — do not proceed with the regular evaluation below.
 
 ## Running the skill (SKIP FOR THIS EXPERIMENT)
 
