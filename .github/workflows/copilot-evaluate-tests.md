@@ -58,7 +58,7 @@ safe-outputs:
 tools:
   github:
     toolsets: [default]
-  bash: ["dotnet", "pwsh", "gh", "env", "ls", "cat", "head", "tail", "grep", "echo", "find"]
+  bash: ["dotnet", "pwsh", "gh", "env", "ls", "cat", "head", "tail", "grep", "echo", "find", "curl", "sed", "awk", "mkdir", "cp", "wc", "sort", "date", "pwd", "uniq", "yq"]
 
 network:
   allowed:
@@ -190,19 +190,21 @@ env | grep -i TOKEN | sed 's/=.*/=<REDACTED>/' 2>&1 || echo "No TOKEN vars"
 echo "=== Step 3: Network test - api.nuget.org ==="
 curl -s --connect-timeout 5 https://api.nuget.org/v3/index.json 2>&1 | head -c 200 || echo "BLOCKED"
 
-echo "=== Step 4: Find HostApp project ==="
-find . -name "Maui.Controls.Sample.HostApp.csproj" -type f 2>/dev/null | head -5
+echo "=== Step 4: Find unit test projects (no platform workloads needed) ==="
+find . -name "Core.UnitTests.csproj" -path "*/Core/tests/*" -type f 2>/dev/null | head -5
 
-echo "=== Step 5: Try dotnet restore ==="
-HOSTAPP=$(find . -name "Maui.Controls.Sample.HostApp.csproj" -type f 2>/dev/null | head -1)
-if [ -n "$HOSTAPP" ]; then
-  dotnet restore "$HOSTAPP" 2>&1 | tail -30
-  echo "=== Step 6: Try dotnet build (Android, no restore) ==="
-  dotnet build "$HOSTAPP" -f net10.0-android -c Debug --no-restore 2>&1 | tail -30
+echo "=== Step 5: Try dotnet restore on Core.UnitTests ==="
+UNITTEST=$(find . -name "Core.UnitTests.csproj" -path "*/Core/tests/*" -type f 2>/dev/null | head -1)
+if [ -n "$UNITTEST" ]; then
+  dotnet restore "$UNITTEST" 2>&1 | tail -40
+  echo "=== Step 6: Try dotnet build Core.UnitTests ==="
+  dotnet build "$UNITTEST" -c Debug 2>&1 | tail -40
 else
-  echo "HostApp project not found - listing workspace root:"
-  ls -la
+  echo "Core.UnitTests project not found"
 fi
+
+echo "=== Step 7: Check installed workloads ==="
+dotnet workload list 2>&1 || echo "workload list failed"
 ```
 
 After running the experiment, post the full results using `add_comment` with `item_number` set to the PR number. Include ALL output from every step. Then call `noop` with message "Build experiment complete" and STOP — do not proceed with the regular evaluation below.
