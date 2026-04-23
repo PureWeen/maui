@@ -127,6 +127,19 @@ steps:
       GH_TOKEN: ${{ github.token }}
       PR_NUMBER: ${{ inputs.pr_number }}
     run: pwsh .github/scripts/Checkout-GhAwPr.ps1
+
+  # Provision a local .NET SDK with MAUI workloads so the agent can build/test.
+  # Uses the MAUI repo's own build scripts — output goes to .dotnet/ in workspace.
+  # The workspace is mounted into the agent container, so .dotnet/dotnet is available.
+  - name: Provision .NET SDK with MAUI workloads
+    run: |
+      echo "⏳ Provisioning local .NET SDK..."
+      ./build.sh --target=dotnet 2>&1 | tail -5
+      echo "⏳ Installing MAUI workloads (this takes ~5 minutes)..."
+      ./build.sh --target=dotnet-local-workloads 2>&1 | tail -10
+      echo "✅ SDK provisioned at .dotnet/"
+      .dotnet/dotnet --version
+      .dotnet/dotnet workload list
 ---
 
 # Evaluate PR Tests
@@ -176,68 +189,28 @@ If there is nothing to evaluate (PR has no test files, PR is a docs-only change,
 
 Do not post a comment and do not silently exit — always use `noop` so the workflow run shows a clear reason.
 
-## EXPERIMENT: Build Environment Test (run this FIRST)
+## EXPERIMENT: Build MAUI with provisioned SDK (run this FIRST)
 
-Before doing anything else, run these commands **in order** and report what you find.
-
-### Part A: Prove dotnet build works (no workloads needed)
+The pre-agent steps have provisioned a local .NET SDK with MAUI workloads at `.dotnet/`. Use `.dotnet/dotnet` for all commands.
 
 ```bash
-echo "=== A1: Check .NET SDK ==="
-dotnet --version 2>&1
+echo "=== Step 1: Verify local SDK ==="
+.dotnet/dotnet --version 2>&1
+.dotnet/dotnet workload list 2>&1
 
-echo "=== A2: Create and build a minimal console app ==="
-mkdir -p /tmp/test-build
-dotnet new console -o /tmp/test-build/hello --force 2>&1
-dotnet build /tmp/test-build/hello -c Debug 2>&1 | tail -20
-```
-
-### Part B: Test NuGet network access via dotnet
-
-```bash
-echo "=== B1: Test dotnet restore with NuGet ==="
-dotnet restore /tmp/test-build/hello --force 2>&1 | tail -20
-```
-
-### Part C: Try installing MAUI workloads to a writable location
-
-The default `/usr/share/dotnet` is read-only. Try copying the SDK to a writable location and installing workloads there.
-
-```bash
-echo "=== C1: Copy dotnet SDK to writable location ==="
-cp -r /usr/share/dotnet /tmp/dotnet-local 2>&1 | tail -5
-export DOTNET_ROOT=/tmp/dotnet-local
-export PATH="/tmp/dotnet-local:$PATH"
-echo "DOTNET_ROOT=$DOTNET_ROOT"
-dotnet --version 2>&1
-
-echo "=== C2: Install android workload ==="
-dotnet workload install maui-android --skip-sign-check 2>&1 | tail -40
-
-echo "=== C3: Check installed workloads ==="
-dotnet workload list 2>&1
-```
-
-### Part D: If workloads installed, try building MAUI unit tests
-
-```bash
-echo "=== D1: Find Core.UnitTests ==="
-export DOTNET_ROOT=/tmp/dotnet-local
-export PATH="/tmp/dotnet-local:$PATH"
+echo "=== Step 2: Find and restore Core.UnitTests ==="
 UNITTEST=$(find . -name "Core.UnitTests.csproj" -path "*/Core/tests/*" -type f 2>/dev/null | head -1)
 echo "Found: $UNITTEST"
+.dotnet/dotnet restore "$UNITTEST" 2>&1 | tail -30
 
-if [ -n "$UNITTEST" ]; then
-  echo "=== D2: Try dotnet restore ==="
-  dotnet restore "$UNITTEST" 2>&1 | tail -30
-  echo "=== D3: Try dotnet build ==="
-  dotnet build "$UNITTEST" -c Debug --no-restore 2>&1 | tail -30
-else
-  echo "Core.UnitTests project not found"
-fi
+echo "=== Step 3: Build Core.UnitTests ==="
+.dotnet/dotnet build "$UNITTEST" -c Debug --no-restore 2>&1 | tail -30
+
+echo "=== Step 4: Run Core.UnitTests (first 5 tests) ==="
+.dotnet/dotnet test "$UNITTEST" -c Debug --no-build --filter "FullyQualifiedName~Microsoft.Maui.UnitTests" -- NUnit.NumberOfTestWorkers=1 2>&1 | tail -40
 ```
 
-After running ALL parts, post the full results using `add_comment` with `item_number` set to the PR number. Include ALL output from every step. Then call `noop` with message "Build experiment complete" and STOP — do not proceed with the regular evaluation below.
+After running the experiment, post the full results using `add_comment` with `item_number` set to the PR number. Include ALL output from every step. Then call `noop` with message "Build experiment complete" and STOP — do not proceed with the regular evaluation below.
 
 ## Running the skill (SKIP FOR THIS EXPERIMENT)
 
