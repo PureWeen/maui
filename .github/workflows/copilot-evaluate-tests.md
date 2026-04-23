@@ -64,6 +64,7 @@ network:
   allowed:
     - defaults
     - dotnet
+    - java
 
 concurrency:
   group: "evaluate-pr-tests-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number || github.run_id }}"
@@ -195,16 +196,15 @@ echo "DOTNET_ROOT=$DOTNET_ROOT"
 dotnet --version 2>&1
 ```
 
-### Step B: Install workloads via DOTNET_ROOT
+### Step B: Install workloads via Cake
 
 ```bash
 export DOTNET_ROOT=$(pwd)/.dotnet
 
-echo "=== B1: Install maui-android workload ==="
-dotnet workload install maui-android --skip-sign-check 2>&1 | tail -20
+echo "=== B1: Install workloads via Cake (uses local SDK internally) ==="
+dotnet cake --target=dotnet-local-workloads --configuration=Release 2>&1 | tail -20
 
-echo "=== B2: Verify workloads ==="
-dotnet workload list 2>&1
+echo "=== B2: Verify packs ==="
 ls .dotnet/packs/ 2>&1 | head -20
 ```
 
