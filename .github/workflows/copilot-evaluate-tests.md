@@ -148,6 +148,9 @@ steps:
 
       echo "⏳ Step 4: Verifying packs..."
       ls .dotnet/packs/ | head -20
+
+      echo "⏳ Step 5: Building MAUI MSBuild tasks..."
+      .dotnet/dotnet build Microsoft.Maui.BuildTasks.slnf -c Release 2>&1 | tail -10
       echo "✅ Provisioning complete."
 ---
 
