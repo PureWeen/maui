@@ -199,20 +199,31 @@ echo "=== B1: Test dotnet restore with NuGet ==="
 dotnet restore /tmp/test-build/hello --force 2>&1 | tail -20
 ```
 
-### Part C: Try installing MAUI workloads
+### Part C: Try installing MAUI workloads to a writable location
+
+The default `/usr/share/dotnet` is read-only. Try copying the SDK to a writable location and installing workloads there.
 
 ```bash
-echo "=== C1: Check installed workloads ==="
-dotnet workload list 2>&1
+echo "=== C1: Copy dotnet SDK to writable location ==="
+cp -r /usr/share/dotnet /tmp/dotnet-local 2>&1 | tail -5
+export DOTNET_ROOT=/tmp/dotnet-local
+export PATH="/tmp/dotnet-local:$PATH"
+echo "DOTNET_ROOT=$DOTNET_ROOT"
+dotnet --version 2>&1
 
-echo "=== C2: Try installing android workload ==="
-dotnet workload install maui-android 2>&1 | tail -40
+echo "=== C2: Install android workload ==="
+dotnet workload install maui-android --skip-sign-check 2>&1 | tail -40
+
+echo "=== C3: Check installed workloads ==="
+dotnet workload list 2>&1
 ```
 
 ### Part D: If workloads installed, try building MAUI unit tests
 
 ```bash
 echo "=== D1: Find Core.UnitTests ==="
+export DOTNET_ROOT=/tmp/dotnet-local
+export PATH="/tmp/dotnet-local:$PATH"
 UNITTEST=$(find . -name "Core.UnitTests.csproj" -path "*/Core/tests/*" -type f 2>/dev/null | head -1)
 echo "Found: $UNITTEST"
 
@@ -220,7 +231,7 @@ if [ -n "$UNITTEST" ]; then
   echo "=== D2: Try dotnet restore ==="
   dotnet restore "$UNITTEST" 2>&1 | tail -30
   echo "=== D3: Try dotnet build ==="
-  dotnet build "$UNITTEST" -c Debug 2>&1 | tail -30
+  dotnet build "$UNITTEST" -c Debug --no-restore 2>&1 | tail -30
 else
   echo "Core.UnitTests project not found"
 fi
