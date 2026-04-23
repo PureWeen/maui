@@ -1,5 +1,5 @@
-# gh-aw-metadata: {"schema_version":"v3","frontmatter_hash":"cfd43483186a2e715a0ed7c7ede912145506989bf801c0c48a3d0ffa9250cfd0","compiler_version":"v0.69.3","strict":true,"agent_id":"copilot","agent_model":"claude-sonnet-4.6"}
-# gh-aw-manifest: {"version":1,"secrets":["COPILOT_GITHUB_TOKEN","GH_AW_GITHUB_MCP_SERVER_TOKEN","GH_AW_GITHUB_TOKEN","GITHUB_TOKEN"],"actions":[{"repo":"actions/checkout","sha":"de0fac2e4500dabe0009e67214ff5f5447ce83dd","version":"v6.0.2"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"006ffd856b868b71df342dbe0ba082a963249b31","version":"v0.69.3"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.25.26"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.25.26"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.25.26"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.2.26"},{"image":"ghcr.io/github/github-mcp-server:v1.0.0"},{"image":"node:lts-alpine"}]}
+# gh-aw-metadata: {"schema_version":"v3","frontmatter_hash":"e6108b400747659f3c4f74c9e05d2af87f897b994a2b1b09bf40daee5db5e1ad","compiler_version":"v0.69.3","strict":true,"agent_id":"copilot","agent_model":"claude-sonnet-4.6"}
+# gh-aw-manifest: {"version":1,"secrets":["COPILOT_GITHUB_TOKEN","GH_AW_GITHUB_MCP_SERVER_TOKEN","GH_AW_GITHUB_TOKEN","GITHUB_TOKEN"],"actions":[{"repo":"actions/checkout","sha":"de0fac2e4500dabe0009e67214ff5f5447ce83dd","version":"v6.0.2"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9"},{"repo":"actions/setup-dotnet","sha":"c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7","version":"v5.2.0"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"006ffd856b868b71df342dbe0ba082a963249b31","version":"v0.69.3"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.25.26"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.25.26"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.25.26"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.2.26"},{"image":"ghcr.io/github/github-mcp-server:v1.0.0"},{"image":"node:lts-alpine"}]}
 #    ___                   _   _      
 #   / _ \                 | | (_)     
 #  | |_| | __ _  ___ _ __ | |_ _  ___ 
@@ -34,6 +34,7 @@
 #   - actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 #   - actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
 #   - actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+#   - actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
 #   - actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
 #   - github/gh-aw-actions/setup@006ffd856b868b71df342dbe0ba082a963249b31 # v0.69.3
 #
@@ -248,14 +249,14 @@ jobs:
         run: |
           bash "${RUNNER_TEMP}/gh-aw/actions/create_prompt_first.sh"
           {
-          cat << 'GH_AW_PROMPT_efcd381515c11fbe_EOF'
+          cat << 'GH_AW_PROMPT_323c2be1a6031d14_EOF'
           <system>
-          GH_AW_PROMPT_efcd381515c11fbe_EOF
+          GH_AW_PROMPT_323c2be1a6031d14_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/xpia.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/temp_folder_prompt.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/markdown.md"
           cat "${RUNNER_TEMP}/gh-aw/prompts/safe_outputs_prompt.md"
-          cat << 'GH_AW_PROMPT_efcd381515c11fbe_EOF'
+          cat << 'GH_AW_PROMPT_323c2be1a6031d14_EOF'
           <safe-output-tools>
           Tools: add_comment, missing_tool, missing_data, noop
           </safe-output-tools>
@@ -287,15 +288,15 @@ jobs:
           {{/if}}
           </github-context>
           
-          GH_AW_PROMPT_efcd381515c11fbe_EOF
+          GH_AW_PROMPT_323c2be1a6031d14_EOF
           cat "${RUNNER_TEMP}/gh-aw/prompts/github_mcp_tools_with_safeoutputs_prompt.md"
           if [ "$GITHUB_EVENT_NAME" = "issue_comment" ] && [ -n "$GH_AW_IS_PR_COMMENT" ] || [ "$GITHUB_EVENT_NAME" = "pull_request_review_comment" ] || [ "$GITHUB_EVENT_NAME" = "pull_request_review" ]; then
             cat "${RUNNER_TEMP}/gh-aw/prompts/pr_context_prompt.md"
           fi
-          cat << 'GH_AW_PROMPT_efcd381515c11fbe_EOF'
+          cat << 'GH_AW_PROMPT_323c2be1a6031d14_EOF'
           </system>
           {{#runtime-import .github/workflows/copilot-evaluate-tests.md}}
-          GH_AW_PROMPT_efcd381515c11fbe_EOF
+          GH_AW_PROMPT_323c2be1a6031d14_EOF
           } > "$GH_AW_PROMPT"
       - name: Interpolate variables and render templates
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
@@ -422,6 +423,10 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+      - name: Setup .NET
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+        with:
+          dotnet-version: '8.0'
       - name: Create gh-aw temp directory
         run: bash "${RUNNER_TEMP}/gh-aw/actions/create_gh_aw_tmp_dir.sh"
       - name: Configure gh CLI for GitHub Enterprise
@@ -441,14 +446,7 @@ jobs:
         name: Checkout PR and restore agent infrastructure
         run: pwsh .github/scripts/Checkout-GhAwPr.ps1
       - name: Provision .NET SDK with MAUI workloads
-        run: |-
-          echo "⏳ Provisioning local .NET SDK..."
-          ./build.sh --target=dotnet 2>&1 | tail -5
-          echo "⏳ Installing MAUI workloads (this takes ~5 minutes)..."
-          ./build.sh --target=dotnet-local-workloads 2>&1 | tail -10
-          echo "✅ SDK provisioned at .dotnet/"
-          .dotnet/dotnet --version
-          .dotnet/dotnet workload list
+        run: "echo \"⏳ Step 1: Downloading local .NET SDK to .dotnet/...\"\n./build.sh --target=dotnet 2>&1 | tail -10\necho \"✅ SDK downloaded. Version:\"\n.dotnet/dotnet --version\n\necho \"⏳ Step 2: Installing MAUI workloads via dotnet cake...\"\n.dotnet/dotnet cake --target=dotnet-local-workloads --configuration=Release 2>&1 | tail -20\necho \"✅ Workload install complete.\"\n.dotnet/dotnet workload list\n\necho \"⏳ Step 3: Verifying packs directory...\"\nls .dotnet/packs/ | head -20\necho \"✅ Provisioning complete.\"\n"
 
       - name: Configure Git credentials
         env:
@@ -500,9 +498,9 @@ jobs:
           mkdir -p "${RUNNER_TEMP}/gh-aw/safeoutputs"
           mkdir -p /tmp/gh-aw/safeoutputs
           mkdir -p /tmp/gh-aw/mcp-logs/safeoutputs
-          cat > "${RUNNER_TEMP}/gh-aw/safeoutputs/config.json" << 'GH_AW_SAFE_OUTPUTS_CONFIG_2b865bebcdaba345_EOF'
+          cat > "${RUNNER_TEMP}/gh-aw/safeoutputs/config.json" << 'GH_AW_SAFE_OUTPUTS_CONFIG_d3fe2b9e4114eda5_EOF'
           {"add_comment":{"hide_older_comments":true,"max":1,"target":"*"},"create_report_incomplete_issue":{},"missing_data":{},"missing_tool":{},"noop":{"max":1,"report-as-issue":"false"},"report_incomplete":{}}
-          GH_AW_SAFE_OUTPUTS_CONFIG_2b865bebcdaba345_EOF
+          GH_AW_SAFE_OUTPUTS_CONFIG_d3fe2b9e4114eda5_EOF
       - name: Write Safe Outputs Tools
         env:
           GH_AW_TOOLS_META_JSON: |
@@ -690,7 +688,7 @@ jobs:
           
           mkdir -p /home/runner/.copilot
           GH_AW_NODE=$(which node 2>/dev/null || command -v node 2>/dev/null || echo node)
-          cat << GH_AW_MCP_CONFIG_6426aab64b6494a5_EOF | "$GH_AW_NODE" "${RUNNER_TEMP}/gh-aw/actions/start_mcp_gateway.cjs"
+          cat << GH_AW_MCP_CONFIG_e245560bf17fd2ec_EOF | "$GH_AW_NODE" "${RUNNER_TEMP}/gh-aw/actions/start_mcp_gateway.cjs"
           {
             "mcpServers": {
               "github": {
@@ -731,7 +729,7 @@ jobs:
               "payloadDir": "${MCP_GATEWAY_PAYLOAD_DIR}"
             }
           }
-          GH_AW_MCP_CONFIG_6426aab64b6494a5_EOF
+          GH_AW_MCP_CONFIG_e245560bf17fd2ec_EOF
       - name: Download activation artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:

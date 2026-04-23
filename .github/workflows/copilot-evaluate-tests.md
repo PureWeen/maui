@@ -129,17 +129,24 @@ steps:
     run: pwsh .github/scripts/Checkout-GhAwPr.ps1
 
   # Provision a local .NET SDK with MAUI workloads so the agent can build/test.
-  # Uses the MAUI repo's own build scripts — output goes to .dotnet/ in workspace.
-  # The workspace is mounted into the agent container, so .dotnet/dotnet is available.
+  # Step 1: build.sh --target=dotnet downloads the SDK to .dotnet/
+  # Step 2: dotnet cake runs the workload install task directly
+  # The workspace is mounted into the agent container, so .dotnet/ is available.
   - name: Provision .NET SDK with MAUI workloads
     run: |
-      echo "⏳ Provisioning local .NET SDK..."
-      ./build.sh --target=dotnet 2>&1 | tail -5
-      echo "⏳ Installing MAUI workloads (this takes ~5 minutes)..."
-      ./build.sh --target=dotnet-local-workloads 2>&1 | tail -10
-      echo "✅ SDK provisioned at .dotnet/"
+      echo "⏳ Step 1: Downloading local .NET SDK to .dotnet/..."
+      ./build.sh --target=dotnet 2>&1 | tail -10
+      echo "✅ SDK downloaded. Version:"
       .dotnet/dotnet --version
+
+      echo "⏳ Step 2: Installing MAUI workloads via dotnet cake..."
+      .dotnet/dotnet cake --target=dotnet-local-workloads --configuration=Release 2>&1 | tail -20
+      echo "✅ Workload install complete."
       .dotnet/dotnet workload list
+
+      echo "⏳ Step 3: Verifying packs directory..."
+      ls .dotnet/packs/ | head -20
+      echo "✅ Provisioning complete."
 ---
 
 # Evaluate PR Tests
@@ -191,23 +198,27 @@ Do not post a comment and do not silently exit — always use `noop` so the work
 
 ## EXPERIMENT: Build MAUI with provisioned SDK (run this FIRST)
 
-The pre-agent steps have provisioned a local .NET SDK with MAUI workloads at `.dotnet/`. Use `.dotnet/dotnet` for all commands.
+The pre-agent steps provisioned a local .NET SDK with MAUI workloads at `.dotnet/`. The `.dotnet/dotnet` binary cannot be executed directly in this container (noexec), so use the system `dotnet` with `DOTNET_ROOT` pointing to the local SDK.
 
 ```bash
-echo "=== Step 1: Verify local SDK ==="
-.dotnet/dotnet --version 2>&1
-.dotnet/dotnet workload list 2>&1
+echo "=== Step 1: Verify local SDK packs ==="
+ls .dotnet/packs/ 2>&1 | head -20
+echo "---"
+ls .dotnet/sdk/ 2>&1
 
-echo "=== Step 2: Find and restore Core.UnitTests ==="
+echo "=== Step 2: Set DOTNET_ROOT and verify ==="
+export DOTNET_ROOT=$(pwd)/.dotnet
+echo "DOTNET_ROOT=$DOTNET_ROOT"
+dotnet --version 2>&1
+dotnet workload list 2>&1
+
+echo "=== Step 3: Find and restore Core.UnitTests ==="
 UNITTEST=$(find . -name "Core.UnitTests.csproj" -path "*/Core/tests/*" -type f 2>/dev/null | head -1)
 echo "Found: $UNITTEST"
-.dotnet/dotnet restore "$UNITTEST" 2>&1 | tail -30
+dotnet restore "$UNITTEST" 2>&1 | tail -30
 
-echo "=== Step 3: Build Core.UnitTests ==="
-.dotnet/dotnet build "$UNITTEST" -c Debug --no-restore 2>&1 | tail -30
-
-echo "=== Step 4: Run Core.UnitTests (first 5 tests) ==="
-.dotnet/dotnet test "$UNITTEST" -c Debug --no-build --filter "FullyQualifiedName~Microsoft.Maui.UnitTests" -- NUnit.NumberOfTestWorkers=1 2>&1 | tail -40
+echo "=== Step 4: Build Core.UnitTests ==="
+dotnet build "$UNITTEST" -c Debug --no-restore 2>&1 | tail -30
 ```
 
 After running the experiment, post the full results using `add_comment` with `item_number` set to the PR number. Include ALL output from every step. Then call `noop` with message "Build experiment complete" and STOP — do not proceed with the regular evaluation below.
