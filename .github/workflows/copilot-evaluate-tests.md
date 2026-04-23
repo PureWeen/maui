@@ -1,12 +1,11 @@
 ---
 description: Evaluates test quality, coverage, and appropriateness on PRs that add or modify tests
 on:
-  # pull_request_target is intentionally disabled — we don't want auto-runs on PR create/update.
-  # pull_request_target:
-  #   types: [opened, synchronize, reopened]
-  #   paths:
-  #     - 'src/**/tests/**'
-  #     - 'src/**/test/**'
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'src/**/tests/**'
+      - 'src/**/test/**'
   slash_command:
     name: evaluate-tests
     events: [pull_request_comment]
@@ -26,9 +25,11 @@ on:
 
 labels: ["pr-review", "testing"]
 
-# Trigger filtering: slash_command compiles to issue_comment (platform handles
-# command matching). workflow_dispatch is always allowed.
+# Trigger filtering: pull_request_target auto-triggers on test file changes,
+# slash_command compiles to issue_comment (platform handles command matching),
+# workflow_dispatch is always allowed.
 if: >-
+  (github.event_name == 'pull_request_target' && github.event.pull_request.draft == false) ||
   github.event_name == 'issue_comment' ||
   github.event_name == 'workflow_dispatch'
 
@@ -57,20 +58,25 @@ safe-outputs:
 tools:
   github:
     toolsets: [default]
+  bash: ["dotnet", "pwsh", "gh", "env", "ls", "cat", "head", "tail", "grep", "echo", "find"]
 
-network: defaults
+network:
+  allowed:
+    - defaults
+    - dotnet
 
 concurrency:
-  group: "evaluate-pr-tests-${{ github.event.issue.number || inputs.pr_number || github.run_id }}"
+  group: "evaluate-pr-tests-${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number || github.run_id }}"
   cancel-in-progress: true
 
 timeout-minutes: 20
 
 steps:
   - name: Gate — skip if no test source files in diff
+    if: github.event_name == 'pull_request_target' || github.event_name == 'issue_comment'
     env:
       GH_TOKEN: ${{ github.token }}
-      PR_NUMBER: ${{ github.event.issue.number || inputs.pr_number }}
+      PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
     run: |
       # Verify this is an open PR
       if ! STATE=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json state --jq .state 2>&1); then
@@ -130,7 +136,7 @@ Invoke the **evaluate-pr-tests** skill: read and follow `.github/skills/evaluate
 ## Context
 
 - **Repository**: ${{ github.repository }}
-- **PR Number**: ${{ github.event.issue.number || inputs.pr_number }}
+- **PR Number**: ${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
 
 The PR branch has been checked out for you. All files from the PR are available locally.
 
@@ -170,7 +176,38 @@ If there is nothing to evaluate (PR has no test files, PR is a docs-only change,
 
 Do not post a comment and do not silently exit — always use `noop` so the workflow run shows a clear reason.
 
-## Running the skill
+## EXPERIMENT: Build Environment Test (run this FIRST)
+
+Before doing anything else, run these commands and report what you find:
+
+```bash
+echo "=== Step 1: Check .NET SDK ==="
+dotnet --version 2>&1 || echo "dotnet CLI not found"
+
+echo "=== Step 2: Check env vars containing TOKEN (names only, redacted values) ==="
+env | grep -i TOKEN | sed 's/=.*/=<REDACTED>/' 2>&1 || echo "No TOKEN vars"
+
+echo "=== Step 3: Network test - api.nuget.org ==="
+curl -s --connect-timeout 5 https://api.nuget.org/v3/index.json 2>&1 | head -c 200 || echo "BLOCKED"
+
+echo "=== Step 4: Find HostApp project ==="
+find . -name "Maui.Controls.Sample.HostApp.csproj" -type f 2>/dev/null | head -5
+
+echo "=== Step 5: Try dotnet restore ==="
+HOSTAPP=$(find . -name "Maui.Controls.Sample.HostApp.csproj" -type f 2>/dev/null | head -1)
+if [ -n "$HOSTAPP" ]; then
+  dotnet restore "$HOSTAPP" 2>&1 | tail -30
+  echo "=== Step 6: Try dotnet build (Android, no restore) ==="
+  dotnet build "$HOSTAPP" -f net10.0-android -c Debug --no-restore 2>&1 | tail -30
+else
+  echo "HostApp project not found - listing workspace root:"
+  ls -la
+fi
+```
+
+After running the experiment, post the full results using `add_comment` with `item_number` set to the PR number. Include ALL output from every step. Then call `noop` with message "Build experiment complete" and STOP — do not proceed with the regular evaluation below.
+
+## Running the skill (SKIP FOR THIS EXPERIMENT)
 
 1. Use `gh pr view <number>` to fetch PR metadata (title, body, labels, base branch). If `gh` CLI is unavailable, use the GitHub MCP tools instead.
 2. Run `pwsh .github/skills/evaluate-pr-tests/scripts/Gather-TestContext.ps1 -PrNumber <number>` to gather automated context (use the PR number from the Context section above)
