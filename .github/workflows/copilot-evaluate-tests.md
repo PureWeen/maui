@@ -129,22 +129,24 @@ steps:
     run: pwsh .github/scripts/Checkout-GhAwPr.ps1
 
   # Provision a local .NET SDK with MAUI workloads so the agent can build/test.
-  # Step 1: build.sh --target=dotnet downloads the SDK to .dotnet/
-  # Step 2: dotnet cake runs the workload install task directly
+  # 1. dotnet cake --target=dotnet downloads the pinned SDK to .dotnet/
+  # 2. .dotnet/dotnet workload install adds MAUI workloads
   # The workspace is mounted into the agent container, so .dotnet/ is available.
   - name: Provision .NET SDK with MAUI workloads
     run: |
-      echo "⏳ Step 1: Downloading local .NET SDK to .dotnet/..."
-      ./build.sh --target=dotnet 2>&1 | tail -10
-      echo "✅ SDK downloaded. Version:"
-      .dotnet/dotnet --version
+      echo "⏳ Step 1: Restoring dotnet tools (for dotnet-cake)..."
+      dotnet tool restore 2>&1 | tail -5
 
-      echo "⏳ Step 2: Installing MAUI workloads via dotnet cake..."
-      .dotnet/dotnet cake --target=dotnet-local-workloads --configuration=Release 2>&1 | tail -20
+      echo "⏳ Step 2: Downloading local .NET SDK to .dotnet/ via Cake..."
+      dotnet cake --target=dotnet 2>&1 | tail -10
+      echo "SDK version: $(.dotnet/dotnet --version)"
+
+      echo "⏳ Step 3: Installing MAUI workloads..."
+      .dotnet/dotnet workload install maui-android --skip-sign-check 2>&1 | tail -10
       echo "✅ Workload install complete."
       .dotnet/dotnet workload list
 
-      echo "⏳ Step 3: Verifying packs directory..."
+      echo "⏳ Step 4: Verifying packs..."
       ls .dotnet/packs/ | head -20
       echo "✅ Provisioning complete."
 ---
