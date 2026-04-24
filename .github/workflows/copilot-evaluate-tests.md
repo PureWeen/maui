@@ -132,23 +132,46 @@ steps:
       PR_NUMBER: ${{ inputs.pr_number }}
     run: pwsh .github/scripts/Checkout-GhAwPr.ps1
 
-  # Pre-cache Gradle wrapper distribution. The AWF squid proxy blocks Gradle's
-  # HTTPS CONNECT tunneling even when services.gradle.org is allowlisted.
-  # This step downloads it on the runner (outside the container) where there's
-  # no proxy. The workspace .gradle-home/ is mounted into the container.
-  - name: Pre-cache Gradle distribution
+  # ── Provision .NET SDK + MAUI workloads (TRUSTED — no repo code executed) ──
+  # Security: This step runs on the runner with GITHUB_TOKEN. It downloads
+  # tools ONLY from Microsoft CDN and Gradle CDN — no repo scripts are executed.
+  # The only thing read from the repo is global.json's version string (passive data).
+  # The workspace .dotnet/ and .gradle-home/ are mounted into the agent container.
+  - name: Provision .NET SDK, MAUI workloads, and Gradle
     run: |
-      mkdir -p .gradle-home/wrapper/dists
+      set -euo pipefail
+
+      # ── 1. Install .NET SDK from Microsoft CDN ──
+      SDK_VERSION=$(jq -r '.tools.dotnet' global.json)
+      echo "⏳ Installing .NET SDK ${SDK_VERSION} into .dotnet/ ..."
+      curl -sSL https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh \
+        | bash -s -- --install-dir .dotnet --version "$SDK_VERSION"
+      echo "✅ .NET SDK installed: $(.dotnet/dotnet --version)"
+
+      # ── 2. Install MAUI workloads ──
+      echo "⏳ Installing MAUI Android workload..."
+      .dotnet/dotnet workload install maui-android --skip-sign-check
+      echo "✅ Workloads installed:"
+      .dotnet/dotnet workload list
+
+      # ── 3. Pre-cache Gradle distribution ──
+      # The AWF squid proxy blocks Gradle's HTTPS CONNECT tunneling even when
+      # services.gradle.org is allowlisted. Download it here (no proxy) and
+      # place it in the Gradle wrapper cache structure.
       GRADLE_VER=8.13
       GRADLE_URL="https://services.gradle.org/distributions/gradle-${GRADLE_VER}-all.zip"
-      DIST_DIR=".gradle-home/wrapper/dists/gradle-${GRADLE_VER}-all"
-      mkdir -p "$DIST_DIR/downloaded"
-      echo "⏳ Downloading Gradle ${GRADLE_VER}..."
-      curl -sL "$GRADLE_URL" -o "$DIST_DIR/downloaded/gradle-${GRADLE_VER}-all.zip"
+      # Gradle's wrapper uses base36(MD5(url)) as the cache directory name
+      GRADLE_HASH=$(echo -n "$GRADLE_URL" | md5sum | cut -d' ' -f1 \
+        | python3 -c "import sys; h=int(sys.stdin.readline().strip(),16); c='0123456789abcdefghijklmnopqrstuvwxyz'; r=''; exec('while h>0:\n r=c[h%36]+r\n h//=36'); print(r)")
+      DIST_DIR=".gradle-home/wrapper/dists/gradle-${GRADLE_VER}-all/${GRADLE_HASH}"
+      mkdir -p "$DIST_DIR"
+      echo "⏳ Downloading Gradle ${GRADLE_VER} (hash dir: ${GRADLE_HASH})..."
+      curl -sL "$GRADLE_URL" -o "$DIST_DIR/gradle-${GRADLE_VER}-all.zip"
       echo "⏳ Extracting..."
-      unzip -q "$DIST_DIR/downloaded/gradle-${GRADLE_VER}-all.zip" -d "$DIST_DIR/downloaded/"
+      unzip -q "$DIST_DIR/gradle-${GRADLE_VER}-all.zip" -d "$DIST_DIR/"
+      touch "$DIST_DIR/gradle-${GRADLE_VER}-all.zip.ok"
       echo "✅ Gradle ${GRADLE_VER} cached at .gradle-home/"
-      ls "$DIST_DIR/downloaded/"
+      ls "$DIST_DIR/"
 ---
 
 # Evaluate PR Tests
@@ -198,64 +221,52 @@ If there is nothing to evaluate (PR has no test files, PR is a docs-only change,
 
 Do not post a comment and do not silently exit — always use `noop` so the workflow run shows a clear reason.
 
-## EXPERIMENT: Full build inside gh-aw sandbox (run this FIRST)
+## EXPERIMENT: Build MAUI inside gh-aw sandbox (run this FIRST)
 
-Test whether the entire MAUI build chain can happen inside the agent container. Run each step in order and report ALL output.
+The .NET SDK, MAUI workloads, and Gradle are **pre-provisioned** by the runner (trusted `steps:` block — no repo code executed). The agent just needs to set environment variables and build.
 
-### Step A: Provision SDK inside the container
+Run each step in order and report ALL output.
+
+### Step 1: Verify pre-provisioned SDK
 
 ```bash
-echo "=== A1: Restore dotnet tools ==="
-dotnet tool restore 2>&1 | tail -5
-
-echo "=== A2: Download local SDK via Cake ==="
-dotnet cake --target=dotnet 2>&1 | tail -10
-
-echo "=== A3: Set DOTNET_ROOT ==="
 export DOTNET_ROOT=$(pwd)/.dotnet
-echo "DOTNET_ROOT=$DOTNET_ROOT"
+export GRADLE_USER_HOME=$(pwd)/.gradle-home
+
+echo "=== 1a: SDK version ==="
 dotnet --version 2>&1
-```
 
-### Step B: Install workloads via Cake
-
-```bash
-export DOTNET_ROOT=$(pwd)/.dotnet
-
-echo "=== B1: Install workloads via Cake (uses local SDK internally) ==="
-dotnet cake --target=dotnet-local-workloads --configuration=Release 2>&1 | tail -20
-
-echo "=== B2: Verify packs ==="
+echo "=== 1b: Installed packs ==="
 ls .dotnet/packs/ 2>&1 | head -20
-```
 
-### Step C: Build MAUI infrastructure
-
-```bash
-export DOTNET_ROOT=$(pwd)/.dotnet
-export GRADLE_USER_HOME=$(pwd)/.gradle-home
-
-echo "=== C1: Verify Gradle cache ==="
+echo "=== 1c: Gradle cache ==="
 ls -la .gradle-home/wrapper/dists/ 2>&1
-
-echo "=== C2: Build MSBuild tasks ==="
-dotnet build Microsoft.Maui.BuildTasks.slnf -c Release 2>&1 | tail -20
 ```
 
-### Step D: Build HostApp
+### Step 2: Build MAUI MSBuild tasks
 
 ```bash
 export DOTNET_ROOT=$(pwd)/.dotnet
 export GRADLE_USER_HOME=$(pwd)/.gradle-home
 
-echo "=== D1: Find HostApp ==="
+echo "=== 2: Build MSBuild tasks ==="
+dotnet build Microsoft.Maui.BuildTasks.slnf -c Release 2>&1 | tail -30
+```
+
+### Step 3: Build HostApp for Android
+
+```bash
+export DOTNET_ROOT=$(pwd)/.dotnet
+export GRADLE_USER_HOME=$(pwd)/.gradle-home
+
+echo "=== 3a: Find HostApp ==="
 HOSTAPP=$(find . -name "Controls.TestCases.HostApp.csproj" -type f 2>/dev/null | head -1)
 echo "Found: $HOSTAPP"
 
-echo "=== D2: Restore HostApp ==="
+echo "=== 3b: Restore HostApp ==="
 dotnet restore "$HOSTAPP" 2>&1 | tail -20
 
-echo "=== D3: Build HostApp for Android ==="
+echo "=== 3c: Build HostApp for Android ==="
 dotnet build "$HOSTAPP" -f net10.0-android -c Debug --no-restore 2>&1 | tail -40
 ```
 
