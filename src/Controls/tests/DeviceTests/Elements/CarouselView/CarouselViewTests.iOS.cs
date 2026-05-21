@@ -10,7 +10,7 @@ namespace Microsoft.Maui.DeviceTests
 {
 	public partial class CarouselViewTests
 	{
-		[Fact(DisplayName = "CarouselView Does Not Leak With Default ItemsLayout")]
+		[Fact(DisplayName = "CarouselView Does Not Leak With Default ItemsLayout", Skip = "Flaky on MacCatalyst — CarouselView memory not collected. Tracking: https://github.com/PureWeen/maui/issues/30")]
 		public async Task CarouselViewDoesNotLeakWithDefaultItemsLayout()
 		{
 			SetupBuilder();
