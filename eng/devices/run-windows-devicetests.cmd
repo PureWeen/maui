@@ -1,11 +1,12 @@
 @echo off
 REM Windows Device Tests runner for Helix
-REM Usage: run-windows-devicetests.cmd <ScenarioName> <Device> <PackageId> <TargetFrameworkVersion> [CategoryFilter]
+REM Usage: run-windows-devicetests.cmd <ScenarioName> <Device> <PackageId> <TargetFrameworkVersion> [CategoryFilter] [SkipCategories]
 REM   ScenarioName: Controls.DeviceTests, Core.DeviceTests, etc.
 REM   Device: packaged or unpackaged
 REM   PackageId: Package ID for the app
 REM   TargetFrameworkVersion: net10.0, etc.
 REM   CategoryFilter (optional): Name of single category to run (e.g., Lifecycle)
+REM   SkipCategories (optional): Semicolon-separated list of categories to skip (e.g., HybridWebView;Shell)
 REM
 REM This script runs Windows device tests directly without requiring Cake.
 REM It handles certificate import, MSIX installation, test execution, and result merging.
@@ -17,6 +18,7 @@ set DEVICE=%2
 set PACKAGE_ID=%3
 set TFM=%4
 set CATEGORY_FILTER=%~5
+set SKIP_CATEGORIES=%~6
 set EXIT_CODE=0
 
 REM Configuration
@@ -32,6 +34,7 @@ echo Device: %DEVICE%
 echo Package ID: %PACKAGE_ID%
 echo Target Framework: %TFM%
 echo Category Filter: %CATEGORY_FILTER%
+echo Skip Categories: %SKIP_CATEGORIES%
 echo Work Item Payload: %HELIX_WORKITEM_PAYLOAD%
 echo Upload Root: %HELIX_WORKITEM_UPLOAD_ROOT%
 echo Correlation Payload: %HELIX_CORRELATION_PAYLOAD%
@@ -391,6 +394,14 @@ for /f "usebackq delims=" %%c in ("%CATEGORY_FILE%") do (
     set CATEGORY_NAME=%%c
     set EXPECTED_RESULT_FILE=%TEST_RESULTS_DIR%\TestResults-%PACKAGE_ID_SAFE%_!CATEGORY_NAME!.xml
     
+    REM Check if this category is in the skip list
+    set SHOULD_SKIP=0
+    if defined SKIP_CATEGORIES (
+        for %%s in (!SKIP_CATEGORIES:;= !) do (
+            if /i "%%s"=="!CATEGORY_NAME!" set SHOULD_SKIP=1
+        )
+    )
+    
     REM If category filter is set, only run matching category
     if defined CATEGORY_FILTER (
         if /i "!CATEGORY_NAME!"=="%CATEGORY_FILTER%" (
@@ -400,6 +411,8 @@ for /f "usebackq delims=" %%c in ("%CATEGORY_FILE%") do (
         ) else (
             echo Skipping category !CATEGORY_INDEX!: !CATEGORY_NAME! ^(filter: %CATEGORY_FILTER%^)
         )
+    ) else if "!SHOULD_SKIP!"=="1" (
+        echo Skipping category !CATEGORY_INDEX!: !CATEGORY_NAME! ^(active issue: %SKIP_CATEGORIES%^)
     ) else (
         echo Running category !CATEGORY_INDEX!: !CATEGORY_NAME!
         powershell -Command "Start-Process '!APP_URI!' -ArgumentList '\"%TEST_RESULTS_FILE%\"', '!CATEGORY_INDEX!'"
