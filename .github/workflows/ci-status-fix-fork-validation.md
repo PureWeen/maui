@@ -13,8 +13,7 @@ environment: copilot-pat-pool
 
 # v0.82.14 reads this supported workflow-level contract in both capture-time and
 # apply-time safe-output handlers.
-env:
-  GH_AW_CUSTOM_BASE_BRANCH: net11.0
+
 
 permissions:
   contents: read
@@ -179,7 +178,7 @@ safe-outputs:
   staged: true
   max-patch-size: 256
   env:
-    GH_AW_CUSTOM_BASE_BRANCH: net11.0
+    DEFAULT_BRANCH: net11.0
   push-to-pull-request-branch:
     target: "*"
     max: 1
