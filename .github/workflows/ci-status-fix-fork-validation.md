@@ -178,6 +178,8 @@ pre-agent-steps:
 safe-outputs:
   staged: true
   max-patch-size: 256
+  env:
+    GH_AW_CUSTOM_BASE_BRANCH: net11.0
   push-to-pull-request-branch:
     target: "*"
     max: 1
@@ -279,8 +281,12 @@ post-steps:
         echo "::error::The no-op scenario unexpectedly registered a mutation."
         exit 1
       fi
-      if [ -f "${output}" ] && [ "$(jq '(.items // []) | length' "${output}")" -ne 0 ]; then
-        echo "::error::The no-op scenario unexpectedly captured a safe output."
+      if [ -f "${output}" ] && ! jq -e '
+        ((.errors // []) | length) == 0 and
+        ((.items // []) | length) <= 1 and
+        all((.items // [])[]; .type == "noop")
+      ' "${output}" >/dev/null; then
+        echo "::error::The no-op scenario captured a mutation, backend error, or multiple outputs."
         exit 1
       fi
   - name: Prove exact stale-base rejection
@@ -372,7 +378,8 @@ Read the context and perform exactly the selected scenario:
 1. `main-noop`: Verify the snapshot is schema version 2, authoritative, scoped
    to exact label `ci-scan`, bounded to at most 3 issues, and contains at least
    one prefetched issue even though the incident fixture records 50/50 broad
-   live-search bodies filtered. Make no file changes and call no safe output.
+   live-search bodies filtered. Make no file changes. Either emit no output or
+   call `noop` once with a short bounded transparency message.
 2. `net11-staged-advance`: Work only on fork proof PR #169. Check out its exact
    `headRefName`, verify `HEAD` equals the context `headRefOid`, append one line
    containing the current run ID to
