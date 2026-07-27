@@ -156,6 +156,9 @@ checkout:
     - "ci-fix/fork-proof-36619"
 
 pre-agent-steps:
+  - name: Pin safe-output capture base
+    shell: bash
+    run: echo "DEFAULT_BRANCH=net11.0" >> "$GITHUB_ENV"
   - name: Materialize immutable proof inputs
     shell: bash
     env:
