@@ -56,7 +56,7 @@ on:
         GH_TOKEN: ${{ github.token }}
         SCENARIO: ${{ github.event.inputs.scenario }}
       run: |
-        $proofSha = '0fbf60b5c55eea4ea3ce70868211a7df8c59ca0c'
+        $proofSha = '0fbf60b5c5b62e50d94fadc4879c3d5296966677'
         $queryScript = Join-Path $env:RUNNER_TEMP 'Query-CiFixPRs.ps1'
         gh api `
           -H 'Accept: application/vnd.github.raw+json' `
@@ -171,7 +171,7 @@ pre-agent-steps:
       for script in Test-CiFixTransport.ps1 Register-CiFixSafeOutputExpectation.ps1; do
         gh api \
           -H 'Accept: application/vnd.github.raw+json' \
-          "repos/PureWeen/maui/contents/.github/scripts/${script}?ref=0fbf60b5c55eea4ea3ce70868211a7df8c59ca0c" \
+          "repos/PureWeen/maui/contents/.github/scripts/${script}?ref=0fbf60b5c5b62e50d94fadc4879c3d5296966677" \
           > "${proof_dir}/${script}"
       done
 
