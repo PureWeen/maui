@@ -1,0 +1,15 @@
+{
+  "sourceRun": 30269934433,
+  "candidateArtifactId": 8654424486,
+  "candidateArtifactSha256": "cf5e5e4f06d3ce400830326fc1fede505406994dc238ac29303dfbb6b856bc63",
+  "safeOutputArtifactId": 8654438467,
+  "safeOutputArtifactSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "productionPr": {
+    "number": 36619,
+    "headSha": "57c442b7df5bd11fa77c0bfc0f4a51dafaab4c28",
+    "headRefName": "ci-fix/issue-36451-4e52c40d1d2be80c",
+    "baseRefName": "net11.0"
+  },
+  "staleBaseFileCount": 3377,
+  "expectedProof": "A staged push uses the saved PR head delta; the exact stale-base fixture is rejected non-green."
+}

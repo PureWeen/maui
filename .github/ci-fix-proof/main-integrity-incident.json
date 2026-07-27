@@ -1,0 +1,11 @@
+{
+  "sourceRun": 30269817669,
+  "sourceArtifactId": 8654330395,
+  "sourceArtifactSha256": "071d38af1dcc22773a5990a5803702cd053ea78f65b22fc3d6de54a796aadb0b",
+  "broadLiveSearch": {
+    "requestedIssueBodies": 50,
+    "integrityFilteredIssueBodies": 50,
+    "visibleIssueBodies": 0
+  },
+  "expectedProof": "A bounded exact-label pre-agent snapshot remains available without broad live issue search."
+}
