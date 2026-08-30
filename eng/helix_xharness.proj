@@ -87,6 +87,8 @@
             <PackageName>com.microsoft.maui.controls.devicetests</PackageName>
             <WindowsPackageId>com.microsoft.maui.controls.devicetests</WindowsPackageId>
             <WindowsProjectPath>src/Controls/tests/DeviceTests/Controls.DeviceTests.csproj</WindowsProjectPath>
+            <!-- HybridWebView tests hang on Windows Helix (permission dialog blocks execution). ActiveIssue: https://github.com/PureWeen/maui/issues/107 -->
+            <WindowsSkipCategories>HybridWebView</WindowsSkipCategories>
         </MAUIScenario>
 
        <MAUIScenario Include="Core">
@@ -236,7 +238,7 @@
         <ItemGroup Condition="'$(TargetOS)' == 'windows'">
             <HelixWorkItem Include="%(_MAUIScenarioSearch.ScenarioDirectoryName)-packaged">
                 <PayloadArchive>%(_MAUIScenarioSearch.PayloadDirectory).zip</PayloadArchive>
-                <Command>call %HELIX_CORRELATION_PAYLOAD%\eng\devices\run-windows-devicetests.cmd %(_MAUIScenarioSearch.ScenarioDirectoryName) packaged %(_MAUIScenarioSearch.WindowsPackageId) $(TargetFrameworkToTest)</Command>
+                <Command>call %HELIX_CORRELATION_PAYLOAD%\eng\devices\run-windows-devicetests.cmd %(_MAUIScenarioSearch.ScenarioDirectoryName) packaged %(_MAUIScenarioSearch.WindowsPackageId) $(TargetFrameworkToTest) "" "%(_MAUIScenarioSearch.WindowsSkipCategories)"</Command>
                 <Timeout>02:00:00</Timeout>
             </HelixWorkItem>
         </ItemGroup>
@@ -245,7 +247,7 @@
         <ItemGroup Condition="'$(TargetOS)' == 'windows'">
             <HelixWorkItem Include="%(_MAUIScenarioSearch.ScenarioDirectoryName)-unpackaged">
                 <PayloadArchive>%(_MAUIScenarioSearch.PayloadDirectory).zip</PayloadArchive>
-                <Command>call %HELIX_CORRELATION_PAYLOAD%\eng\devices\run-windows-devicetests.cmd %(_MAUIScenarioSearch.ScenarioDirectoryName) unpackaged %(_MAUIScenarioSearch.WindowsPackageId) $(TargetFrameworkToTest)</Command>
+                <Command>call %HELIX_CORRELATION_PAYLOAD%\eng\devices\run-windows-devicetests.cmd %(_MAUIScenarioSearch.ScenarioDirectoryName) unpackaged %(_MAUIScenarioSearch.WindowsPackageId) $(TargetFrameworkToTest) "" "%(_MAUIScenarioSearch.WindowsSkipCategories)"</Command>
                 <Timeout>02:00:00</Timeout>
             </HelixWorkItem>
         </ItemGroup>
