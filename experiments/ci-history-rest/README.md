@@ -46,9 +46,9 @@ physical references stay unverified source references, not execution counts.
 
 Use Python 3.10+ and the standard library. The canonical shared example is
 **PureWeen/aspnetcore** commit
-[`73fa66c082718e44624f5e949ac4583096d8525c`](https://github.com/PureWeen/aspnetcore/tree/73fa66c082718e44624f5e949ac4583096d8525c/experiments/ci-history-rest).
-After that companion commit is published, obtain a checkout at that exact
-commit alongside this checkout. Source acquisition requires GitHub access,
+[`e3b4a4e7a6332db0555d46ca88fcec106dc7aeef`](https://github.com/PureWeen/aspnetcore/tree/e3b4a4e7a6332db0555d46ca88fcec106dc7aeef/experiments/ci-history-rest).
+Obtain a checkout at that exact commit alongside this checkout.
+Source acquisition requires GitHub access,
 not source-service credentials. The shared root contains the sole OpenAPI,
 client, validator, and fixture service; MAUI does not carry a second
 implementation.
@@ -98,8 +98,7 @@ production timeline or source identity verification has been implemented.
 
 ## What the closed spike established
 
-The [public proposal](https://gist.github.com/PureWeen/b0dc2dc71a9a6c789130b0a5b3327aa0)
-provides cross-repository context. The retained MAUI results were seven indexed
+The retained MAUI results were seven indexed
 UI positives, then **nine of eleven after original evidence and all four
 fallback builds**. Two fallback builds had FAIL then PASS with a final published
 `Passed` outcome. The device question matched **three of three positive builds
