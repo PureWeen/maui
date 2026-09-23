@@ -44,11 +44,14 @@ physical references stay unverified source references, not execution counts.
 
 ## Run locally
 
-Use Python 3.10+ and the standard library. Obtain the canonical shared example
-from **PureWeen/aspnetcore**, under `experiments/ci-history-rest`, alongside
-this checkout. The immutable canonical commit pin will be added before
-publication. The shared root contains the sole OpenAPI, client, validator,
-and fixture service; MAUI does not carry a second implementation.
+Use Python 3.10+ and the standard library. The canonical shared example is
+**PureWeen/aspnetcore** commit
+[`73fa66c082718e44624f5e949ac4583096d8525c`](https://github.com/PureWeen/aspnetcore/tree/73fa66c082718e44624f5e949ac4583096d8525c/experiments/ci-history-rest).
+After that companion commit is published, obtain a checkout at that exact
+commit alongside this checkout. Source acquisition requires GitHub access,
+not source-service credentials. The shared root contains the sole OpenAPI,
+client, validator, and fixture service; MAUI does not carry a second
+implementation.
 
 Once both source checkouts are available, these commands are offline except
 for an owned `127.0.0.1` listener:
