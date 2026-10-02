@@ -1050,6 +1050,9 @@ steps:
       if-no-files-found: error
       retention-days: 1
       overwrite: true
+  - name: Initialize disabled test-recurrence hints
+    run: |
+      pwsh -NoProfile -File .github/scripts/Get-CiScanRecurrenceHints.ps1 --provider none --output /tmp/gh-aw/agent/trusted/recurrence-hints.json
   - name: Verify connectivity to AzDO and Helix
     run: |
       set -euo pipefail
@@ -1086,6 +1089,8 @@ Periodic scan of MAUI CI pipelines on `net11.0`. Every actionable failure become
 ## Pipelines to scan
 
 Process pipelines in this order. For each, fetch recent completed builds on `net11.0`, pick the latest, and look back through ~10 prior completed builds for occurrence counts.
+
+For test recurrence, read `/tmp/gh-aw/agent/trusted/recurrence-hints.json` and follow `.github/docs/test-recurrence-hints.md` after selecting the exact failure key and prior build IDs: RECURRED builds may be counted without opening logs, while UNKNOWN builds (all builds with `provider=none`) must be checked exactly as today.
 
 The pipeline names, definition IDs (`maui-pr` 302, `maui-pr-devicetests` 314, `maui-pr-uitests` 313), org/project, and investigation priority order are defined canonically in `.github/docs/maui-ci-facts.md` — read it first (see below) and use those values; do not maintain a second copy here.
 
