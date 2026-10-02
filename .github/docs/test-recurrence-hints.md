@@ -134,7 +134,15 @@ produce positives. Whole normalized messages must agree; no fuzzy matching.
 
 Exact failed index rows can produce internal **RECURRED** candidates only when their
 references and full keys agree with public completed failed-run details.
-Completed runs include earlier attempts; this is not proof of the final build attempt.
+Before matching a signature, the local provider binds each public run's
+`pipelineReference` to one unique completed Stage/Phase/Job chain in the build's
+current public timeline. Stage, phase and job identifiers and their own attempts
+must match; `previousAttempts` validates discarded older stage/job runs.
+The rule never uses the maximum attempt across unrelated jobs. Missing or
+ambiguous linkage, incomplete history, future attempts and transport errors
+produce **UNKNOWN**. Earlier failed attempts cannot establish recurrence or
+absence. Current-key discovery applies the same rule. This mapping rule was
+committed before restarting the frozen corpus; it has no per-build exceptions.
 Identical re-ingestion
 duplicates collapse; conflicting rows, mixed outcomes, errors and pagination
 doubt produce **UNKNOWN**. **NOT_RECURRED is not enabled**: per-run statistics
@@ -166,13 +174,17 @@ as latest against its ten earlier builds, includes unkeyed current failures in
 its accounting, and reuses one query per lane across overlapping windows.
 
 ```bash
-python3 -B .github/scripts/Validate-CiScanKusto.py --windows /tmp/maui-history/windows --cache-root /tmp/maui-history/evidence --output /tmp/maui-history/comparison
+python3 -B .github/scripts/Validate-CiScanKusto.py --windows /tmp/maui-history/windows --cache-root /tmp/maui-history/evidence --output /tmp/maui-history/comparison --reuse-kusto
 python3 -B -m unittest discover -s .github/scripts -p 'test_ci_scan_kusto.py' -v
 ```
 
 G1 compares public exact-key/signature results for each pair; incomplete public
 keys cannot prove absence. G2 binds signatures to the selected test's own failure
-block in final-attempt AzDO/Helix evidence for every positive hint. Errors and
+block in final-attempt AzDO/Helix evidence for every keyed pair, including
+UNKNOWN fallback, and checks N, >=2, First seen and Occurrences per key.
+Only disagreement pairs open diagnostic exit-zero consoles; these do not alter
+the original oracle. `--reuse-kusto` forbids new query attempts and authentication.
+Errors and
 incomplete run linkage are **unavailable proof**, not agreement. Any known
 disagreement stops the comparison. A completed *candidate* comparison is not
 automatically certification or permission to skip logs.

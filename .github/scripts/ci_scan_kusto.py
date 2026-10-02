@@ -75,6 +75,7 @@ class Transport:
             raise EvidenceError("invalid-negative-budget")
         self.opener = urllib.request.build_opener(NoRedirect())
         self.credential = None
+        self.reads = []
 
     def persist(self):
         write_json(self.state_path, self.state)
@@ -88,6 +89,8 @@ class Transport:
                 value = cache.read_text() if text else json.loads(cache.read_text())
                 if not text and not (isinstance(value, dict) or allow_list and isinstance(value, list)):
                     raise EvidenceError("invalid-cached-response-shape")
+                self.reads.append({"request_id": cache.name, "label": label, "cache_hit": True,
+                                   "bytes": receipt.get("bytes", 0), "complete": True})
                 return value, receipt
         if self.state["downloaded_bytes"] >= self.max_bytes:
             raise BudgetError("download-budget-reached")
@@ -162,6 +165,8 @@ class Transport:
             receipt["error"] = "invalid-json"
             raise EvidenceError(receipt["error"]) from None
         finally:
+            self.reads.append({"request_id": cache.name, "label": label, "cache_hit": False,
+                               "bytes": receipt.get("bytes", 0), "complete": receipt["complete"]})
             self.persist()
 
     def text_request(self, label, url):
@@ -306,6 +311,94 @@ def exact_key(detail, run, definition):
             "queue_name": queue, "test_run_name": run_name, "signature": signature}
 
 
+def public_timeline(transport, build):
+    value, receipt = transport.json_request(
+        "attempt-timeline", AZDO + f"/_apis/build/builds/{build}/timeline?api-version=7.1")
+    if receipt.get("continuation") or not isinstance(value.get("records"), list):
+        raise EvidenceError("attempt-timeline-incomplete")
+    return value
+
+
+def final_attempt_binding(timeline, run, build, definition):
+    """Bind one run to a unique current stage/phase/job, never a build-wide maximum."""
+    reference = run.get("pipelineReference", {})
+    if (not isinstance(reference, dict) or not isinstance(run.get("build"), dict) or
+            reference.get("pipelineId") != build or reference.get("pipelineDefinitionId") != definition or
+            str(run.get("build", {}).get("id")) != str(build) or run.get("state") != "Completed"):
+        raise EvidenceError("attempt-run-scope-or-state-doubt")
+    records = timeline.get("records")
+    if not isinstance(records, list) or any(not isinstance(r, dict) or not r.get("id") for r in records):
+        raise EvidenceError("attempt-timeline-schema-doubt")
+    if len({r["id"] for r in records}) != len(records):
+        raise EvidenceError("attempt-timeline-duplicate-records")
+    selected, parent, identifier = [], None, ""
+    for kind, field, name_field in (
+            ("Stage", "stageReference", "stageName"),
+            ("Phase", "phaseReference", "phaseName"),
+            ("Job", "jobReference", "jobName")):
+        part = reference.get(field, {})
+        if not isinstance(part, dict):
+            raise EvidenceError("attempt-run-reference-missing")
+        name, attempt = part.get(name_field), part.get("attempt")
+        if not isinstance(name, str) or not name or type(attempt) is not int or attempt <= 0:
+            raise EvidenceError("attempt-run-reference-missing")
+        identifier = identifier + "." + name if identifier else name
+        candidates = [r for r in records if r.get("type") == kind and
+                      r.get("identifier") == identifier and r.get("parentId") == parent]
+        if len(candidates) != 1:
+            raise EvidenceError("attempt-job-identity-ambiguous")
+        record = candidates[0]
+        current, previous = record.get("attempt"), record.get("previousAttempts")
+        if (type(current) is not int or current <= 0 or record.get("state") != "completed" or
+                record.get("result") not in ("succeeded", "succeededWithIssues", "failed") or
+                not isinstance(previous, list)):
+            raise EvidenceError("attempt-final-record-incomplete")
+        if any(not isinstance(p, dict) or type(p.get("attempt")) is not int or
+               not 0 < p["attempt"] < current or not p.get("recordId") or not p.get("timelineId")
+               for p in previous) or len({p["attempt"] for p in previous}) != len(previous):
+            raise EvidenceError("attempt-history-ambiguous")
+        if attempt > current:
+            raise EvidenceError("attempt-run-newer-than-timeline")
+        selected.append((record, attempt))
+        parent = record["id"]
+    # Older stages/jobs must be explicitly represented in previousAttempts.
+    # Phase records often carry an empty history, so stage/job supply that proof.
+    older = any(record["attempt"] != attempt for record, attempt in selected)
+    if older:
+        for record, attempt in (selected[0], selected[2]):
+            if record["attempt"] != attempt and attempt not in {p["attempt"] for p in record["previousAttempts"]}:
+                raise EvidenceError("attempt-prior-history-missing")
+        return {"state": "PRIOR", "reason": "run-not-final-attempt"}
+    return {"state": "FINAL", "stage": selected[0][0]["identifier"],
+            "stage_attempt": selected[0][1], "job_id": selected[2][0]["id"],
+            "job_attempt": selected[2][1], "test_run_name": run.get("name")}
+
+
+def final_attempt_rows(transport, key, build, rows):
+    relevant = [r for r in rows if r.get("BuildId") == build and
+                r.get("BuildDefinitionId") == key["definition_id"] and
+                r.get("TestName") == key.get("test_name") and
+                r.get("Arguments") == key.get("arguments") and
+                r.get("ArgumentHash") == key.get("argument_hash") and
+                r.get("QueueName") == key.get("queue_name") and
+                r.get("TestRunName") == key.get("test_run_name")]
+    if not relevant:
+        return []
+    timeline = public_timeline(transport, build)
+    final = []
+    for run_id in sorted({r.get("TestRunId") for r in relevant}, key=str):
+        if type(run_id) is not int or run_id <= 0:
+            raise EvidenceError("attempt-run-id-missing")
+        run, _ = transport.json_request(
+            "attempt-run-detail", AZDO + f"/_apis/test/runs/{run_id}?api-version=7.1")
+        if run.get("id") != run_id or run.get("name") != key["test_run_name"]:
+            raise EvidenceError("attempt-run-name-or-id-mismatch")
+        binding = final_attempt_binding(timeline, run, build, key["definition_id"])
+        if binding["state"] == "FINAL":
+            final.extend(r for r in relevant if r["TestRunId"] == run_id)
+    return final
+
+
 def deduplicate_rows(rows):
     unique = {}
     for row in rows:
@@ -398,7 +491,17 @@ def hint(key, build, rows, transport_complete=True):
 
 
 def structured_candidate(transport, key, build, rows, complete=True):
-    result = hint(key, build, rows, complete)
+    result = hint(key, build, [], complete)
+    if not complete or result["reason"] == "invalid-or-incomplete-key":
+        return result
+    try:
+        final = final_attempt_rows(transport, key, build, rows)
+    except BudgetError:
+        raise
+    except (EvidenceError, ValueError, TypeError, KeyError) as error:
+        result["reason"] = str(error) if isinstance(error, EvidenceError) else "attempt-schema-doubt"
+        return result
+    result = hint(key, build, final, complete)
     if result["state"] != "RECURRED":
         return result
     try:
@@ -429,12 +532,20 @@ def consumer_hint(transport, key, build, rows, complete=True):
 
 def discover_keys(transport, build, definition):
     keys, unkeyed = {}, []
+    timeline = None
     for result in public_failures(transport, build):
         try:
             run, _ = transport.json_request("public-run-detail",
                 AZDO + f"/_apis/test/runs/{result['runId']}?api-version=7.1")
+            if run.get("id") != result["runId"]:
+                raise EvidenceError("attempt-run-id-mismatch")
             if not re.search(r"((?:ubuntu|osx|windows)\.[A-Za-z0-9_.-]+\.open)", run.get("name", "")):
                 raise EvidenceError("queue-unavailable")
+            if timeline is None:
+                timeline = public_timeline(transport, build)
+            binding = final_attempt_binding(timeline, run, build, definition)
+            if binding["state"] == "PRIOR":
+                continue
             detail, run = public_detail(transport, build, result)
             key = exact_key(detail, run, definition)
             identity = digest(key)
