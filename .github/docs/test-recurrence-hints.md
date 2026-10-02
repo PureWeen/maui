@@ -319,11 +319,70 @@ Cumulative collection and both stops remain within budget:
 **7 Kusto attempts / 284,176,976 downloaded bytes**. Uncertified surfaces include
 non-test wrapper discrimination, absent queue/attempt/signature fields, ambiguous
 run linkage, coverage/negative answers and full end-to-end outputs.
-There is **no certified public REST replacement** to request yet. A future
+There is **no generally certified public REST replacement** to request yet. A future
 batched history response needs exact-key/signature and final stage/job attempt
-identity, plus a reliable distinction between actual tests and synthetic
-work-item results; coverage is still required for negatives. This does not
+identity. The existing `testName` field supports the general synthetic-work-item
+exclusion; this finding does not require a new result-kind field.
+Coverage is still required for negatives. This does not
 justify an endpoint name or removal of any shared proposed API field.
+
+### Last-rule replay: all frozen builds visited, no unsafe candidates
+
+The suffix rule was committed as
+`7ff124b0cc242142f78b4553d4aac24b781efda4` before a second restart at scan 1.
+All **120 frozen builds / 60 simulations** were visited using the unchanged
+original oracle and the same six frozen Kusto responses. There were **zero
+new Kusto queries, zero unsafe candidates and zero blind-spot exceptions**.
+Neither eligibility rule changed during this final replay.
+
+| Evidence | Final result | Claim |
+|---|---|---|
+| Final-attempt positive membership | **3/3** candidates agree with G1 and exact original console blocks | Confirmed on these pairs only |
+| Keyed routed pairs | **40**: 3 positive, 37 UNKNOWN; all same-answer or same-fallback | 11 original comparisons remain unavailable |
+| Complete keyed scan | **1/4** has all original evidence and identical N / >=2 / First seen / Occurrences | One fully checked scan, not general certification |
+| Complete scanner replacement | **Not certified**; 1,123 latest records lack an eligible exact key | All live hints remain UNKNOWN |
+
+The fully checked scan is `ImageWithUndefinedSizeAndWithBackgroundSetRenders`
+with latest build
+[1605027](https://dev.azure.com/dnceng-public/public/_build/results?buildId=1605027).
+Both routes return **1600801, 1601687, 1605027**, **N=3**, threshold true,
+Occurrences 3 and window-bounded First seen
+`2026-09-17T12:33:09.2529879Z`. The other confirmed prior pair is latest
+1617729 / prior 1600801, but that scan's unknown fallback evidence is incomplete.
+The previous 1603563 attempt-1 failure now stays UNKNOWN. The synthetic
+WorkItemExecution records stay on the original path and are not counted as tests.
+
+Latest record accounting is 1,132 public Failed results: five older-attempt
+records discarded, four eligible key instances, and 1,123 unkeyed records
+(1,099 missing queue, six missing exact name/run/signature, 18 synthetic
+work-item results). UNKNOWN rate among keyed pairs is **37/40 (92.5%)**;
+unkeyed records are separate, not omitted from the coverage accounting.
+The three incomplete keyed scans must not be reported as PASS merely because
+both routes reused the same unavailable evidence.
+
+**Costs:** the last replay made 154 new requests / 4,089,271 bytes, including
+15 new attempt-check calls / 2,273,838 bytes. Actual original HTTP reads avoided
+were **0 / 0**; net after those checks is **-15 reads / -2,273,838 bytes**.
+Across both attempt-rule replays, new attempt checks total 110 calls /
+263,400,003 bytes (mostly eager corpus timeline collection), with no demonstrated
+network savings. Last-replay cache-route accounting omitted 21 positive-evidence
+reads / 873,808 bytes; that is executed cache reuse, **not skipped HTTP traffic**.
+Cumulative real collection cost is **7 Kusto attempts / 288,291,717 bytes**,
+below both ceilings. No extra diagnostic consoles were needed in the last replay.
+
+**REST implication:** the checked scan establishes the data needed for a
+final-attempt positive hint, not a deployable public service or a generally
+certified replacement. Existing anonymous calls already supply the underlying
+records: `GET resultsbybuild?buildId={id}&outcomes=Failed` on `vstmr`,
+known-ID `GET /_apis/test/Runs/{run}/Results/{result}`,
+`GET /_apis/test/runs/{run}` and
+`GET /_apis/build/builds/{build}/timeline?api-version=7.1` on public AzDO.
+A supported read-only service would batch the selected build IDs and exact
+test/configuration filter, include error messages and the run's
+stage/phase/job identifiers and their own final attempts, and expose coverage.
+It must preserve `.WorkItemExecution` names so callers can reject synthetic
+results. No specific service endpoint is proposed. Full inventory, negatives,
+ambiguous run linkage and general end-to-end equivalence remain uncertified.
 
 ## Local checks
 
