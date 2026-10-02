@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Produces optional test-recurrence hints without selecting builds or reading logs.
+    Produces optional test-recurrence hints. Live Kusto is local opt-in only.
 .DESCRIPTION
     The default provider is none: every requested prior build is UNKNOWN and requires
     the scanner's existing original-evidence lookback. Fixture is for offline tests only.
@@ -14,12 +14,21 @@ param(
     [Alias('-input')]
     [string]$InputPath,
     [Alias('-provider')]
-    [ValidateSet('none', 'fixture')]
+    [ValidateSet('none', 'fixture', 'kusto')]
     [string]$Provider = 'none',
     [Alias('-fixture')]
     [string]$FixturePath,
     [Alias('-output')]
-    [string]$OutputPath
+    [string]$OutputPath,
+    [Alias('-inventory')]
+    [string]$InventoryPath,
+    [Alias('-branch')]
+    [ValidateSet('main', 'net11.0')]
+    [string]$Branch,
+    [Alias('cache-root', '-cache-root')]
+    [string]$CacheRoot,
+    [Alias('-offline')]
+    [switch]$Offline
 )
 
 Set-StrictMode -Version Latest
@@ -131,6 +140,20 @@ function Get-CiScanRecurrenceHints {
 }
 
 if ($MyInvocation.InvocationName -eq '.') { return }
+
+if ($Provider -eq 'kusto') {
+    if ($InputPath -or $FixturePath -or -not $InventoryPath -or -not $Branch -or
+        -not $CacheRoot -or -not $OutputPath) {
+        throw 'Local kusto requires InventoryPath, Branch, CacheRoot and OutputPath, not InputPath or FixturePath.'
+    }
+    $python = Get-Command python3 -ErrorAction Stop
+    $arguments = @((Join-Path $PSScriptRoot 'ci_scan_kusto.py'), '--inventory', $InventoryPath,
+        '--branch', $Branch, '--cache-root', $CacheRoot, '--output', $OutputPath)
+    if ($Offline) { $arguments += '--offline' }
+    & $python.Source @arguments
+    if ($LASTEXITCODE -ne 0) { throw 'Local Kusto preflight incomplete; use original evidence.' }
+    return
+}
 
 if ($InputPath) {
     $request = Get-Content -LiteralPath $InputPath -Raw | ConvertFrom-Json -AsHashtable

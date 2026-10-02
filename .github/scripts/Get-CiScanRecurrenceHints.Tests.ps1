@@ -194,12 +194,20 @@ Describe 'Exact-key offline fixture provider' {
 }
 
 Describe 'Workflow boundary' {
+    It 'requires explicit frozen inputs for local kusto without invoking authentication' {
+        $output = Join-Path $TestDrive 'incomplete-local.json'
+        & pwsh -NoProfile -File $HintScript --provider kusto --output $output 2>$null
+        $LASTEXITCODE | Should -Not -Be 0
+        Test-Path $output | Should -BeFalse
+    }
+
     It 'hard-codes only none in both scanner sources and compiler-generated locks' {
         foreach ($name in @('ci-status-main', 'ci-status-net11')) {
             foreach ($extension in @('md', 'lock.yml')) {
                 $text = Get-Content (Join-Path $PSScriptRoot "../workflows/$name.$extension") -Raw
                 $text | Should -Match 'Get-CiScanRecurrenceHints.ps1 --provider none'
                 $text | Should -Not -Match '--provider fixture'
+                $text | Should -Not -Match '--provider kusto'
             }
         }
     }
