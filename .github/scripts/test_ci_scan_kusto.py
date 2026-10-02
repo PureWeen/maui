@@ -72,6 +72,31 @@ class HintsTests(unittest.TestCase):
     def test_empty_rows_never_mean_negative(self):
         self.assertNotEqual("NOT_RECURRED", history.hint(KEY, 101, [])["state"])
 
+    def test_synthetic_work_item_result_is_always_unknown(self):
+        key = dict(KEY, test_name="SyntheticAssembly.WorkItemExecution")
+        row = dict(ROW, TestName=key["test_name"])
+        value = history.hint(key, 101, [row])
+        self.assertEqual("UNKNOWN", value["state"])
+        self.assertEqual("synthetic-work-item-result-outside-test-recurrence", value["reason"])
+        with patch.object(history, "final_attempt_rows") as attempts:
+            self.assertEqual("UNKNOWN", history.structured_candidate(None, key, 101, [row])["state"])
+            attempts.assert_not_called()
+
+    def test_synthetic_work_item_cannot_form_current_test_key(self):
+        with self.assertRaisesRegex(history.EvidenceError, "synthetic-work-item-result"):
+            history.exact_key({"automatedTestName": "SyntheticAssembly.WorkItemExecution",
+                              "errorMessage": "Synthetic error"},
+                             {"name": "Synthetic_ubuntu.2204.amd64.open_Release"}, 314)
+
+    def test_synthetic_public_result_requires_original_path_without_detail_fetch(self):
+        with patch.object(history, "public_failures", return_value=[
+                {"runId": 1, "id": 2, "automatedTestName": "SyntheticAssembly.WorkItemExecution"}]):
+            with patch.object(history, "public_detail") as detail:
+                keys, unkeyed = history.discover_keys(None, 101, 314)
+                detail.assert_not_called()
+        self.assertEqual([], keys)
+        self.assertEqual("synthetic-work-item-result-outside-test-recurrence", unkeyed[0]["reason"])
+
     def test_normalization_preserves_distinctions(self):
         self.assertEqual("Error\nat X", history.normalize_signature("\r\n Error \r\n at X \r\n"))
         for message in ("error", "Error 42", "Error /agent/path", "Error  /agent/path"):

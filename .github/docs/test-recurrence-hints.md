@@ -194,7 +194,7 @@ ingestion timestamps describe observed rows only, not coverage or availability
 of missing rows. No complete original-log end-to-end equivalence is claimed for
 unkeyed/fallback cases.
 
-### Certification stopped: attempt/rerun mismatch
+### First stop: attempt/rerun mismatch
 
 The corpus froze twenty builds per lane (120 builds total) for definitions
 302/313/314 on main/net11.0, planning sixty latest-build simulations.
@@ -253,6 +253,77 @@ history service must preserve that attempt identity, bind each result to the
 selected final timeline/Helix job (or provide an explicit final-attempt marker),
 and report trustworthy coverage. An unscoped batch of Failed rows is insufficient.
 This evidence does not justify removing any field from the shared API proposal.
+
+### Second stop: synthetic work-item result outside test recurrence
+
+The general final-attempt rule was committed as
+`589f39674ac65cc685b21c189b9a6108d275045f` before restarting at scan 1.
+It uses the same frozen build windows and Kusto responses, with **zero new
+Kusto queries**. The original console oracle and signature normalization are
+unchanged. The former 1603563 Failed-attempt-1 candidate now returns UNKNOWN.
+
+The restart **stopped at its first new unsafe candidate**: latest
+[1617729](https://dev.azure.com/dnceng-public/public/_build/results?buildId=1617729)
+versus prior [1600801](https://dev.azure.com/dnceng-public/public/_build/results?buildId=1600801),
+definition 314/main. The public name
+`com.microsoft.maui.controls.devicetests-Signed.WorkItemExecution` represents a
+work-item failure wrapper. Its generic message says that the Helix work item
+failed and may have crashed; it is not a selected test's own error block.
+Final-attempt Kusto and public AzDO records agree, but neither the unchanged
+oracle nor disagreement-only inspection of all selected consoles confirms this
+name/signature block. The test-history adapter must distinguish actual test
+results from infrastructure/work-item wrapper results before they can be hints.
+Public Arcade source confirms the synthetic name and generic message:
+[CreateFailedTestsForFailedWorkItems.cs L50-L61](https://github.com/dotnet/arcade/blob/967466cae9ae41a6b61431f772d1de23aff20f43/src/Microsoft.DotNet.Helix/Sdk/CreateFailedTestsForFailedWorkItems.cs#L50-L61).
+The matching final-attempt work item is **Finished / ExitCode 1**; its console
+ends with `Command exited with 1`. The pinned scanner reads the nonzero work
+item's real failure evidence, not a fabricated `.WorkItemExecution` test block
+([scanner L1134-L1143](https://github.com/dotnet/maui/blob/2067dd42c6032fbc40d2e46245806679a85df5e6/.github/workflows/ci-status-main.md#L1134-L1143),
+[facts L144-L166](https://github.com/dotnet/maui/blob/2067dd42c6032fbc40d2e46245806679a85df5e6/.github/docs/maui-ci-facts.md#L144-L166)).
+Its `match_pattern` must come from frozen original evidence
+([scanner L1241-L1247](https://github.com/dotnet/maui/blob/2067dd42c6032fbc40d2e46245806679a85df5e6/.github/workflows/ci-status-main.md#L1241-L1247)).
+The public-source check downloaded **25,470 bytes / zero Kusto queries**;
+work-item and console checks reused retained public data.
+
+The last authorized general eligibility rule is therefore: **all names ending
+`.WorkItemExecution` are UNKNOWN and outside test recurrence**. Current discovery
+retains them as unkeyed/original-path diagnostics; direct hints reject them too.
+This is not a per-build exclusion and does not adjust signatures. The rule is
+committed before restarting scan 1 again; no further unsafe-driven rule changes
+are allowed in this experiment.
+
+| Replacement | Certification | Unsafe disagreements | Actual original traffic avoided |
+|---|---|---:|---:|
+| Exact final-attempt test recurrence | **Uncertified**; one real test pair agrees, wrapper pair does not | **1** | **0 reads / 0 bytes** |
+| Absence and complete N / >=2 / First seen / Occurrences | **Uncertified**; original fallback is incomplete | Not fully evaluated | **0 reads / 0 bytes** |
+
+The restart visited **100 of 120 frozen builds**, reached **scan 44 of 60**,
+and evaluated **30 keyed pairs**: 29 IDENTICAL (mostly unchanged UNKNOWN
+fallback) and one UNSAFE. There are **zero console-confirmed blind-spot
+exceptions** and zero complete keyed end-to-end comparisons. Twelve G2 pair
+reads were unavailable, predominantly ambiguous submission/run linkage.
+These missing comparisons are not PASS results. All live hints remain UNKNOWN;
+the positive real-test pair alone does not certify the general replacement.
+
+Actual restart cost was **168 new requests / 263,349,369 response-body bytes**.
+Of these, **95 attempt-check calls / 261,126,165 bytes** were new timeline
+retrievals; public run details were reused. Actual original HTTP reads avoided
+were **zero**, so charging these attempt checks yields **-95 reads /
+-261,126,165 bytes net**, not savings. This includes eager timeline collection
+for the frozen corpus, not just calls that a lazy single-key consumer would need.
+Executed cache-route accounting is separate: nine positive-evidence reads /
+348,912 bytes were omitted from the candidate replay; they are **not skipped
+network downloads** and cannot offset the measured traffic.
+
+Cumulative collection and both stops remain within budget:
+**7 Kusto attempts / 284,176,976 downloaded bytes**. Uncertified surfaces include
+non-test wrapper discrimination, absent queue/attempt/signature fields, ambiguous
+run linkage, coverage/negative answers and full end-to-end outputs.
+There is **no certified public REST replacement** to request yet. A future
+batched history response needs exact-key/signature and final stage/job attempt
+identity, plus a reliable distinction between actual tests and synthetic
+work-item results; coverage is still required for negatives. This does not
+justify an endpoint name or removal of any shared proposed API field.
 
 ## Local checks
 

@@ -285,10 +285,16 @@ def public_detail(transport, build, result):
     return detail, summary
 
 
+def synthetic_work_item(name):
+    return isinstance(name, str) and name.endswith(".WorkItemExecution")
+
+
 def exact_key(detail, run, definition):
     title = detail.get("testCaseTitle", "")
     automated = detail.get("automatedTestName", "")
     name = automated or title
+    if synthetic_work_item(name):
+        raise EvidenceError("synthetic-work-item-result-outside-test-recurrence")
     for prefix in ("Microsoft.Maui.TestCases.Tests.Issues.", "Microsoft.Maui.TestCases.Tests.",
                    "Microsoft.Maui.IntegrationTests."):
         if name.startswith(prefix):
@@ -451,6 +457,9 @@ def kusto_rows(transport, definition, branch, ids):
 def hint(key, build, rows, transport_complete=True):
     state = {"build_id": build, "state": "UNKNOWN", "reason": "history-gap-or-nonmatch",
              "signature": key.get("signature")}
+    if synthetic_work_item(key.get("test_name")):
+        state["reason"] = "synthetic-work-item-result-outside-test-recurrence"
+        return state
     if not all(isinstance(key.get(field), str) for field in
                ("test_name", "arguments", "argument_hash", "queue_name", "test_run_name", "signature")) or not (
             key["test_name"] and key["signature"] and key["queue_name"] and key["test_run_name"]):
@@ -492,7 +501,8 @@ def hint(key, build, rows, transport_complete=True):
 
 def structured_candidate(transport, key, build, rows, complete=True):
     result = hint(key, build, [], complete)
-    if not complete or result["reason"] == "invalid-or-incomplete-key":
+    if not complete or result["reason"] in (
+            "invalid-or-incomplete-key", "synthetic-work-item-result-outside-test-recurrence"):
         return result
     try:
         final = final_attempt_rows(transport, key, build, rows)
@@ -535,6 +545,8 @@ def discover_keys(transport, build, definition):
     timeline = None
     for result in public_failures(transport, build):
         try:
+            if synthetic_work_item(result.get("automatedTestName")):
+                raise EvidenceError("synthetic-work-item-result-outside-test-recurrence")
             run, _ = transport.json_request("public-run-detail",
                 AZDO + f"/_apis/test/runs/{result['runId']}?api-version=7.1")
             if run.get("id") != result["runId"]:
