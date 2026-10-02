@@ -1,0 +1,29 @@
+{
+  "request": {
+    "schema_version": 1,
+    "key": {
+      "definition_id": 313,
+      "test_name": "Issue33038(Android).LayoutShouldBeCorrectOnFirstNavigation",
+      "arguments": "Android",
+      "argument_hash": "",
+      "queue_name": "",
+      "test_run_name": "SafeAreaEdges_android_ui_tests_safeareaedges_controls_36",
+      "signature": "Snapshot different than baseline: LayoutShouldBeCorrectOnFirstNavigation.png"
+    },
+    "prior_build_ids": [1603562, 1602655, 1601988, 1601686, 1600800, 1600091, 1599656, 1597560, 1595567, 1594760]
+  },
+  "observations": [
+    {"build_id": 1603562, "observations": [{"outcome": "Failed", "signature": "Snapshot different than baseline: LayoutShouldBeCorrectOnFirstNavigation.png"}]},
+    {"build_id": 1602655, "observations": [{"outcome": "Failed", "signature": "Snapshot different than baseline: LayoutShouldBeCorrectOnFirstNavigation.png"}]},
+    {"build_id": 1601988, "observations": [{"outcome": "Failed", "signature": "Snapshot different than baseline: LayoutShouldBeCorrectOnFirstNavigation.png"}]},
+    {"build_id": 1601686, "observations": [{"outcome": "Failed", "signature": "Snapshot different than baseline: LayoutShouldBeCorrectOnFirstNavigation.png"}]},
+    {"build_id": 1600091, "observations": [{"outcome": "Failed", "signature": "Snapshot different than baseline: LayoutShouldBeCorrectOnFirstNavigation.png"}]},
+    {"build_id": 1594760, "observations": [{"outcome": "Failed", "signature": "Snapshot different than baseline: LayoutShouldBeCorrectOnFirstNavigation.png"}]},
+    {"build_id": 1599656, "observations": [{"outcome": "Passed", "signature": ""}]},
+    {"build_id": 1600800, "observations": [{"outcome": "Passed", "signature": ""}]}
+  ],
+  "original": {
+    "current_build_id": 1605055,
+    "positive_build_ids": [1594760, 1599656, 1600091, 1600800, 1601686, 1601988, 1602655, 1603562, 1605055]
+  }
+}
